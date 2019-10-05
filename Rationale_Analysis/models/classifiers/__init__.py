@@ -1,0 +1,1 @@
+from Rationale_Analysis.models.classifiers.bert_model import BERTRationaleModel
