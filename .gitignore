@@ -105,5 +105,4 @@ venv.bak/
 
 outputs/
 
-Datasets/**/*.csv
-Datasets/**/*.jsonl
+Datasets/*/data/*.jsonl
