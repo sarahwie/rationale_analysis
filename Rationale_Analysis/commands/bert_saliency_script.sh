@@ -10,7 +10,6 @@ export TRAIN_DATA_PATH=$DATA_BASE_PATH/train.jsonl
 export DEV_DATA_PATH=$DATA_BASE_PATH/dev.jsonl
 export TEST_DATA_PATH=$DATA_BASE_PATH/test.jsonl
 
-export CONFIG_FILE=Rationale_Analysis/training_config/bert_classification.jsonnet
 export OUTPUT_BASE_PATH=${OUTPUT_DIR:-outputs/bert_classification/$DATASET_NAME/$EXP_NAME}
 
 export SALIENCY_CONFIG_FILE=Rationale_Analysis/training_config/saliency_scorers/${SALIENCY}.jsonnet

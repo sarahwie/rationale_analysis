@@ -1,4 +1,4 @@
-export CONFIG_FILE=Rationale_Analysis/training_config/bert_classification.jsonnet
+export CONFIG_FILE=Rationale_Analysis/training_config/classifiers/bert_classification.jsonnet
 export CUDA_DEVICE=$CUDA_DEVICE
 
 SEED=10034

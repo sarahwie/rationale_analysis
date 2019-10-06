@@ -5,7 +5,6 @@
 
 export CUDA_DEVICE=$CUDA_DEVICE
 
-export CONFIG_FILE=Rationale_Analysis/training_config/bert_classification.jsonnet
 export OUTPUT_BASE_PATH=${OUTPUT_DIR:-outputs/bert_classification/$DATASET_NAME/$EXP_NAME}
 
 export TRAIN_DATA_PATH=$OUTPUT_BASE_PATH/${SALIENCY}_saliency/train.jsonl
