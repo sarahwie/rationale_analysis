@@ -29,3 +29,7 @@ Example Run to extract rationales for SST dataset using [CLS] attentions and min
     Output generated in `outputs/bert_classification/SST/bert_base/wrapper_saliency/min_attention_rationale` .
 
 4. `CUDA_DEVICE=0 DATASET_NAME=SST DATA_BASE_PATH=outputs/bert_classification/SST/bert_base/wrapper_saliency/min_attention_rationale EXP_NAME=bert_base/wrapper_saliency/min_attention_rationale/model_b bash Rationale_Analysis/commands/bert_train_script.sh`
+
+You can also combine steps 3 and 4 in single script :
+
+5. `CUDA_DEVICE=0 DATASET_NAME=SST EXP_NAME=bert_base SALIENCY=wrapper RATIONALE=min_attention bash Rationale_Analysis/commands/bert_rationale_and_train_model_b_script.sh`
