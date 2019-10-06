@@ -1,29 +1,25 @@
 {
   dataset_reader : {
-    type : "bert_rationale_reader",
+    type : "rationale_reader",
     tokenizer: {
-       word_splitter: "bert-basic"
+       word_splitter: "spacy"
     },
     token_indexers : {
-      bert : {
-        type : "bert-pretrained",
-        pretrained_model : "bert-base-uncased",
-        use_starting_offsets: true,
-        do_lowercase : true,
+      tokens: {
+        type: "single_id",
+        lowercase_tokens: true
       },
     },
   },
   validation_dataset_reader: {
-    type : "bert_rationale_reader",
+    type : "rationale_reader",
     tokenizer: {
-       word_splitter: "bert-basic"
+       word_splitter: "spacy"
     },
     token_indexers : {
-      bert : {
-        type : "bert-pretrained",
-        pretrained_model : "bert-base-uncased",
-        use_starting_offsets: true,
-        do_lowercase : true,
+      tokens: {
+        type: "single_id",
+        lowercase_tokens: true
       },
     },
   },
@@ -31,7 +27,7 @@
   validation_data_path: std.extVar('DEV_DATA_PATH'),
   test_data_path: std.extVar('TEST_DATA_PATH'),
   model: {
-    type: "bert_rationale_model",
+    type: "encoder_rationale_model",
     bert_model: 'bert-base-uncased',
     requires_grad: '11',
     dropout : 0.0,

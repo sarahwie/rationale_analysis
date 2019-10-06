@@ -10,20 +10,18 @@ from Rationale_Analysis.models.classifiers.base_model import RationaleBaseModel
 
 
 @Model.register("bert_rationale_model")
-class BERTRationaleModel(RationaleBaseModel):
+class BertRationaleModel(RationaleBaseModel):
     def __init__(
         self,
         vocab: Vocabulary,
         bert_model: str,
-        rationale_extractor: Dict,
-        saliency_scorer: Dict,
         dropout: float = 0.0,
         requires_grad: str = "none",
         initializer: InitializerApplicator = InitializerApplicator(),
         regularizer: Optional[RegularizerApplicator] = None,
     ):
 
-        super(BERTRationaleModel, self).__init__(vocab, initializer, regularizer)
+        super(BertRationaleModel, self).__init__(vocab, initializer, regularizer)
         self._vocabulary = vocab
         self._num_labels = self._vocabulary.get_vocab_size("labels")
         self._bert_model = BertForSequenceClassification.from_pretrained(

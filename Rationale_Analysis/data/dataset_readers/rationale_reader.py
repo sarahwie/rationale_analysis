@@ -59,10 +59,19 @@ class RationaleReader(DatasetReader):
             word_tokens = self._tokenizer.tokenize(sentence)
             sentence_indices.append([len(tokens), len(tokens) + len(word_tokens)])
             tokens.append(word_tokens)
+
         fields["document"] = TextField(tokens, self._token_indexers)
         fields["sentence_indices"] = ListField(
             list(map(lambda x: SpanField(x[0], x[1] - 1, fields["document"]), sentence_indices))
         )
+
+        metadata = {
+            'tokens' : tokens,
+            'document' : document,
+            'query' : query
+        }
+
+        fields['metadata'] = MetadataField(metadata)
 
         if query is not None:
             fields["query"] = TextField(self._tokenizer.tokenize(query), self._token_indexers)
