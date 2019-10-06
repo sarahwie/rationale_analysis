@@ -32,9 +32,9 @@
   test_data_path: std.extVar('TEST_DATA_PATH'),
   model: {
     type: "bert_rationale_model",
-    bert_model: 'bert-base-uncased',
-    requires_grad: '11',
-    dropout : 0.0,
+    text_field_embedder: {
+      
+    },
   },
   iterator: {
     type: "bucket",

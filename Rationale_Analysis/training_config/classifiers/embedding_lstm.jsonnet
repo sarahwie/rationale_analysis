@@ -28,28 +28,53 @@
   test_data_path: std.extVar('TEST_DATA_PATH'),
   model: {
     type: "encoder_rationale_model",
-    bert_model: 'bert-base-uncased',
-    requires_grad: '11',
-    dropout : 0.0,
+    token_embedders: {
+        tokens: {
+            type: "embedding",
+            embedding_dim: 300,
+            pretrained_file: "https://allennlp.s3.amazonaws.com/datasets/glove/glove.6B.300d.txt.gz",
+            trainable: true
+        },
+    },
+    seq2seq_encoder : {
+        type: 'lstm',
+        input_size: 300,
+        hidden_size: 128,
+        num_layers: 1,
+        bidirectional: true
+    },
+    dropout: 0.2,
+    attention: {
+        type: 'additive',
+        vector_dim: 256,
+        matrix_dim: 256,
+    },
+    feedforward_encoder:{
+        input_dim: 256,
+        num_layers: 1,
+        hidden_dims: [128],
+        activations: ['relu'],
+        dropout: 0.2
+    },
   },
   iterator: {
     type: "bucket",
     sorting_keys: [["document", "num_tokens"]],
     batch_size : 20
   },
-  "trainer": {
-    "num_epochs": 40,
-    "patience": 5,
-    "grad_norm": 10.0,
-    "validation_metric": "+accuracy",
-    "cuda_device": std.extVar("CUDA_DEVICE"),
-    "optimizer": {
-      "type": "adam",
-      "lr": 2e-5
+  trainer: {
+    num_epochs: 40,
+    patience: 5,
+    grad_norm: 10.0,
+    validation_metric: "+accuracy",
+    cuda_device: std.extVar("CUDA_DEVICE"),
+    optimizer: {
+      type: "adam",
+      lr: 1e-2
     }
   },
-  "random_seed":  std.parseInt(std.extVar("SEED")),
-  "pytorch_seed": std.parseInt(std.extVar("SEED")),
-  "numpy_seed": std.parseInt(std.extVar("SEED")),
-  "evaluate_on_test": true
+  random_seed:  std.parseInt(std.extVar("SEED")),
+  pytorch_seed: std.parseInt(std.extVar("SEED")),
+  numpy_seed: std.parseInt(std.extVar("SEED")),
+  evaluate_on_test: true
 }
