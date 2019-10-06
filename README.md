@@ -19,13 +19,13 @@ Current setup is following  :
 
 Example Run to extract rationales for SST dataset using [CLS] attentions and min_attention heuristic - 
 
-1. `CUDA_DEVICE=0 DATASET_NAME=SST DATA_BASE_PATH=Datasets/SST/data EXP_NAME=bert_base bash bert_train_script.sh`
+1. `CUDA_DEVICE=0 DATASET_NAME=SST DATA_BASE_PATH=Datasets/SST/data EXP_NAME=bert_base bash Rationale_Analysis/commands/bert_train_script.sh`
     Output generated in `outputs/bert_classification/SST/bert_base/` .
 
-2. `CUDA_DEVICE=0 DATASET_NAME=SST DATA_BASE_PATH=Datasets/SST/data EXP_NAME=bert_base SALIENCY=wrapper bash bert_saliency_script.sh`
+2. `CUDA_DEVICE=0 DATASET_NAME=SST DATA_BASE_PATH=Datasets/SST/data EXP_NAME=bert_base SALIENCY=wrapper bash Rationale_Analysis/commands/bert_saliency_script.sh`
     Output generate in `outputs/bert_classification/SST/bert_base/wrapper_saliency` .
 
-3. `CUDA_DEVICE=0 DATASET_NAME=SST EXP_NAME=bert_base SALIENCY=wrapper RATIONALE=min_attention bash bert_rationale_script.sh`
+3. `CUDA_DEVICE=0 DATASET_NAME=SST EXP_NAME=bert_base SALIENCY=wrapper RATIONALE=min_attention bash Rationale_Analysis/commands/bert_rationale_script.sh`
     Output generated in `outputs/bert_classification/SST/bert_base/wrapper_saliency/min_attention_rationale` .
 
-4. `CUDA_DEVICE=0 DATASET_NAME=SST DATA_BASE_PATH=outputs/bert_classification/SST/bert_base/wrapper_saliency/min_attention_rationale EXP_NAME=bert_base/wrapper_saliency/min_attention_rationale/model_b bert_train_script.sh`
+4. `CUDA_DEVICE=0 DATASET_NAME=SST DATA_BASE_PATH=outputs/bert_classification/SST/bert_base/wrapper_saliency/min_attention_rationale EXP_NAME=bert_base/wrapper_saliency/min_attention_rationale/model_b bash Rationale_Analysis/commands/bert_train_script.sh`
