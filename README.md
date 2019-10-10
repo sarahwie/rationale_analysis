@@ -1,3 +1,5 @@
+Suggested use is to use Anaconda and do `pip install -r requirements.txt` .
+
 1. `data` : Folder to store datasets
 2. `Rationale_Analysis/models` : Folder to store allennlp models
     1. `classifiers` : Models that do actually learning 

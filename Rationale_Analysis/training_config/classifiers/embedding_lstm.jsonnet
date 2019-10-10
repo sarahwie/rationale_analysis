@@ -28,7 +28,7 @@
   test_data_path: std.extVar('TEST_DATA_PATH'),
   model: {
     type: "encoder_rationale_model",
-    token_embedders: {
+    text_field_embedder: {
         tokens: {
             type: "embedding",
             embedding_dim: 300,

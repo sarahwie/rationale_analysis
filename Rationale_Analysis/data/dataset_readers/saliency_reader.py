@@ -13,7 +13,7 @@ from allennlp.data.tokenizers import Token
 
 
 @DatasetReader.register("saliency_reader")
-class RationaleReader(DatasetReader):
+class SaliencyReader(DatasetReader):
     def __init__(self, lazy: bool = False) -> None:
         super().__init__(lazy=lazy)
 
