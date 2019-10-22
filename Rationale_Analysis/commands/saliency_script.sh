@@ -2,7 +2,7 @@ export TRAIN_DATA_PATH=${DATA_BASE_PATH:?"set data base path"}/train.jsonl
 export DEV_DATA_PATH=$DATA_BASE_PATH/dev.jsonl
 export TEST_DATA_PATH=$DATA_BASE_PATH/test.jsonl
 
-export OUTPUT_BASE_PATH=${OUTPUT_DIR:-outputs/${CLASSIFIER:?"Set classifier"}/${DATASET_NAME:?"Set dataset name"}/${EXP_NAME:?"Set Exp name"}}
+export OUTPUT_BASE_PATH=${OUTPUT_DIR:-outputs}/${CLASSIFIER:?"Set classifier"}/${DATASET_NAME:?"Set dataset name"}/${EXP_NAME:?"Set Exp name"}
 
 export SALIENCY_CONFIG_FILE=Rationale_Analysis/training_config/saliency_scorers/${SALIENCY:?"Set Saliency scorer"}.jsonnet
 export SALIENCY_FOLDER_NAME=$OUTPUT_BASE_PATH/${SALIENCY}_saliency

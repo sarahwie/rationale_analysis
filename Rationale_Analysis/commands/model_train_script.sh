@@ -5,6 +5,6 @@ export TRAIN_DATA_PATH=${DATA_BASE_PATH:?"set data base path"}/train.jsonl
 export DEV_DATA_PATH=$DATA_BASE_PATH/dev.jsonl
 export TEST_DATA_PATH=$DATA_BASE_PATH/test.jsonl
 
-export OUTPUT_BASE_PATH=${OUTPUT_DIR:-outputs/$CLASSIFIER/${DATASET_NAME:?"Set dataset name"}/${EXP_NAME:?"Set Exp name"}}
+export OUTPUT_BASE_PATH=${OUTPUT_DIR:-outputs}/$CLASSIFIER/${DATASET_NAME:?"Set dataset name"}/${EXP_NAME:?"Set Exp name"}
 
 allennlp train -s $OUTPUT_BASE_PATH --include-package Rationale_Analysis --force $CONFIG_FILE
