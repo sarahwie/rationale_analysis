@@ -1,18 +1,11 @@
-########################################################
-# Predict saliency on given dataset and trained model
-# Parameters required for this script
-# CUDA_DEVICE , RATIONALE , DATASET_NAME , EXP_NAME , SALIENCY 
+export OUTPUT_BASE_PATH=${OUTPUT_DIR:-outputs/${CLASSIFIER:?"Set classifier"}/${DATASET_NAME:?"Set dataset name"}/${EXP_NAME:?"Set Exp name"}}
 
-export CUDA_DEVICE=$CUDA_DEVICE
-
-export OUTPUT_BASE_PATH=${OUTPUT_DIR:-outputs/bert_classification/$DATASET_NAME/$EXP_NAME}
-
-export TRAIN_DATA_PATH=$OUTPUT_BASE_PATH/${SALIENCY}_saliency/train.jsonl
+export TRAIN_DATA_PATH=$OUTPUT_BASE_PATH/${SALIENCY:?"Set Saliency scorer"}_saliency/train.jsonl
 export DEV_DATA_PATH=$OUTPUT_BASE_PATH/${SALIENCY}_saliency/dev.jsonl
 export TEST_DATA_PATH=$OUTPUT_BASE_PATH/${SALIENCY}_saliency/test.jsonl
 
-export RATIONALE_CONFIG_FILE=Rationale_Analysis/training_config/rationale_extractors/${RATIONALE}.jsonnet
-export RATIONALE_FOLDER_NAME=$OUTPUT_BASE_PATH/${SALIENCY}_saliency/${RATIONALE}_rationale
+export RATIONALE_CONFIG_FILE=Rationale_Analysis/training_config/rationale_extractors/${RATIONALE:?"Set Rationale Extractor"}.jsonnet
+export RATIONALE_FOLDER_NAME=$OUTPUT_BASE_PATH/${SALIENCY}_saliency/${RATIONALE}_rationale/${RATIONALE_EXP_NAME:?"Set Rationale Extractor experiment name. May use hyperparameter settings for naming"}
 
 mkdir -p $RATIONALE_FOLDER_NAME
 
@@ -24,7 +17,7 @@ function rationale {
     --dataset-reader-choice validation \
     --predictor rationale_predictor \
     --include-package Rationale_Analysis \
-    --silent --cuda-device 0 \
+    --silent --cuda-device ${CUDA_DEVICE:?"set cuda device"} \
     $RATIONALE_CONFIG_FILE $2
 }
 

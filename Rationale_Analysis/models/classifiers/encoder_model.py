@@ -39,6 +39,8 @@ class EncoderRationaleModel(RationaleBaseModel):
         self._num_labels = self._vocabulary.get_vocab_size("labels")
         self._classification_layer = torch.nn.Linear(self._classifier_input_dim, self._num_labels)
 
+        self._vector = torch.nn.Parameter(torch.randn((1, self._seq2seq_encoder.get_output_dim(),)))
+
         self.embedding_layers = [type(self._text_field_embedder)]
 
         initializer(self)
@@ -48,10 +50,10 @@ class EncoderRationaleModel(RationaleBaseModel):
         mask = util.get_text_field_mask(document).float()
 
         embedded_text = self._seq2seq_encoder(embedded_text, mask=mask)
-        attentions = self._attention(vector=self._vector, matrix=embedded_text, mask=mask)
+        attentions = self._attention(vector=self._vector, matrix=embedded_text, matrix_mask=mask)
 
         embedded_text = embedded_text * attentions.unsqueeze(-1) * mask.unsqueeze(-1)
-        embedded_vec = self._feedforward_encoder(embedded_text.sum(-1))
+        embedded_vec = self._feedforward_encoder(embedded_text.sum(1))
 
         logits = self._classification_layer(embedded_vec)
         probs = torch.nn.Softmax(dim=-1)(logits)
@@ -62,6 +64,7 @@ class EncoderRationaleModel(RationaleBaseModel):
             loss = F.cross_entropy(logits, label)
             output_dict["loss"] = loss
 
+        output_dict['logits'] = logits
         output_dict["probs"] = probs
         output_dict["predicted_labels"] = probs.argmax(-1)
         output_dict["gold_labels"] = label

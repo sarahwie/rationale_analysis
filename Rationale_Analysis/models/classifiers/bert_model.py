@@ -45,7 +45,7 @@ class BertRationaleModel(RationaleBaseModel):
 
         initializer(self)
 
-    def forward(self, document, sentence_indices, label=None, metadata=None) -> Dict[str, Any]:
+    def forward(self, document, sentence_indices, query=None, label=None, metadata=None) -> Dict[str, Any]:
         input_ids = document["bert"]
         input_mask = (input_ids != 0).long()
         input_offsets = document["bert-offsets"]
@@ -56,6 +56,7 @@ class BertRationaleModel(RationaleBaseModel):
         output_dict = {}
         attentions = attentions[-1][:, :, 0, :].mean(1)
 
+        output_dict['logits'] = logits
         output_dict["loss"] = loss
         output_dict["probs"] = probs
         output_dict["predicted_labels"] = probs.argmax(-1)

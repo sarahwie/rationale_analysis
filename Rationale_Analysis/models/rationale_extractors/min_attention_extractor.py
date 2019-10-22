@@ -10,7 +10,7 @@ class MinAttentionRationaleExtractor(RationaleExtractor) :
         super().__init__()
 
     def forward(self, attentions, metadata) :
-        rationales = self.extract_rationale(attentions, metadata)
+        rationales = self.extract_rationale(attentions=attentions, metadata=metadata)
         output_dict = {'metadata' : metadata, 'rationale' : rationales}
         return output_dict
  

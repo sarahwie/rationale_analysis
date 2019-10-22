@@ -53,12 +53,12 @@ class RationaleReader(DatasetReader):
         else:
             sentence_splits = [document]
 
-        tokens = []
+        tokens = [Token('<S>')]
         sentence_indices = []
         for sentence in sentence_splits:
             word_tokens = self._tokenizer.tokenize(sentence)
             sentence_indices.append([len(tokens), len(tokens) + len(word_tokens)])
-            tokens.append(word_tokens)
+            tokens.extend(word_tokens)
 
         fields["document"] = TextField(tokens, self._token_indexers)
         fields["sentence_indices"] = ListField(
@@ -68,7 +68,8 @@ class RationaleReader(DatasetReader):
         metadata = {
             'tokens' : tokens,
             'document' : document,
-            'query' : query
+            'query' : query,
+            'convert_tokens_to_instance' : self.convert_tokens_to_instance
         }
 
         fields['metadata'] = MetadataField(metadata)
@@ -79,6 +80,11 @@ class RationaleReader(DatasetReader):
         if label is not None:
             fields["label"] = LabelField(label, label_namespace="labels")
 
+        return Instance(fields)
+
+    def convert_tokens_to_instance(self, tokens) :
+        fields = {}
+        fields["document"] = TextField(tokens, self._token_indexers)
         return Instance(fields)
 
 
@@ -115,7 +121,8 @@ class BertRationaleReader(RationaleReader):
         metadata = {
             'tokens' : tokens,
             'document' : document,
-            'query' : query
+            'query' : query,
+            'convert_tokens_to_instance' : self.convert_tokens_to_instance
         }
 
         fields['metadata'] = MetadataField(metadata)
