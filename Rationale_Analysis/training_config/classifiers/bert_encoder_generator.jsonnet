@@ -84,5 +84,8 @@
       lr: 2e-5
     }
   },
+  random_seed:  std.parseInt(std.extVar("SEED")),
+  pytorch_seed: std.parseInt(std.extVar("SEED")),
+  numpy_seed: std.parseInt(std.extVar("SEED")),
   evaluate_on_test: true
 }
