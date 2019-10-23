@@ -77,6 +77,7 @@
     patience: 20,
     grad_norm: 10.0,
     validation_metric: "+reg_accuracy",
+    num_serialized_models_to_keep: 1,
     cuda_device: std.extVar("CUDA_DEVICE"),
     optimizer: {
       type: "adam",
