@@ -9,6 +9,7 @@ parser.add_argument("--exp-name", type=str, required=True)
 parser.add_argument("--search-space", type=str, required=True)
 parser.add_argument("--dry-run", dest="dry_run", action="store_true")
 parser.add_argument("--cluster", dest="cluster", action="store_true")
+parser.add_argument('--run-one', dest='run_one', action='store_true')
 
 
 def main(args):
@@ -31,6 +32,9 @@ def main(args):
         print("Running ", cmd, " with exp name ", exp_name)
         if not args.dry_run:
             subprocess.run(cmd, check=True, env=new_env)
+
+        if args.run_one :
+            break
 
 
 if __name__ == "__main__":
