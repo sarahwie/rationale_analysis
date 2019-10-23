@@ -27,7 +27,7 @@ def main(args):
         new_env["EXP_NAME"] = exp_name
         cmd = ["bash", "Rationale_Analysis/commands/model_a_train_script.sh"]
         if args.cluster:
-            cmd = ["sbatch", "Cluster_scripts/multi_gpu_sbatch.sh"] + ['"' + " ".join(cmd) + '"']
+            cmd = ["sbatch", "Cluster_scripts/multi_gpu_sbatch.sh"] + cmd
         print("Running ", cmd, " with exp name ", exp_name)
         if not args.dry_run:
             subprocess.run(cmd, check=True, env=new_env)
