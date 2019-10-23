@@ -1,6 +1,6 @@
 {
   dataset_reader : {
-    type : "bert_rationale_reader",
+    type : "rationale_reader",
     tokenizer: {
        word_splitter: "bert-basic"
     },
@@ -14,7 +14,7 @@
     },
   },
   validation_dataset_reader: {
-    type : "bert_rationale_reader",
+    type : "rationale_reader",
     tokenizer: {
        word_splitter: "bert-basic"
     },
@@ -43,7 +43,8 @@
             bert: {
               type: "bert-pretrained",
               pretrained_model: 'bert-base-uncased',
-              requires_grad: '11'
+              requires_grad: '11',
+              top_layer_only: true
             },
           },
       },
@@ -64,7 +65,8 @@
       dropout : 0.3,
     },
     samples: 1,
-    reg_loss_lambda: 0.1,
+    reg_loss_lambda: std.extVar('LAMBDA'),
+    reg_loss_mu: std.extVar('MU'),
     desired_length: std.extVar('MAX_LENGTH_RATIO')
   },
   iterator: {

@@ -40,7 +40,7 @@ class SimpleGeneratorModel(Model):
         mask = util.get_text_field_mask(document).float()
 
         embedded_text = self._seq2seq_encoder(embedded_text, mask=mask)
-        embedded_text = self._feedforward_encoder(embedded_text)
+        embedded_text = self._dropout(self._feedforward_encoder(embedded_text))
 
         logits = self._classification_layer(embedded_text)
         probs = torch.sigmoid(logits)

@@ -44,7 +44,7 @@ class EncoderGeneratorModel(RationaleBaseModel):
         self._samples = samples
         self._reg_loss_lambda = reg_loss_lambda
         self._reg_loss_mu = reg_loss_mu
-        self._desired_length = desired_length
+        self._desired_length = min(1.0, max(0.0, desired_length))
 
         self._loss_tracks = {
             k: Average()
@@ -69,7 +69,8 @@ class EncoderGeneratorModel(RationaleBaseModel):
 
         for _ in range(self._samples):
             sample_z = sampler.sample() * mask
-            reduced_document = self.regenerate_tokens(metadata, sample_z)
+            # reduced_document = self.regenerate_tokens(metadata, sample_z)
+            reduced_document = document
             encoder_dict = self._encoder(
                 document=reduced_document,
                 sentence_indices=sentence_indices,

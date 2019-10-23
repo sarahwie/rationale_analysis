@@ -1,6 +1,6 @@
 {
   dataset_reader : {
-    type : "bert_rationale_reader",
+    type : "rationale_reader",
     tokenizer: {
        word_splitter: "bert-basic"
     },
@@ -14,7 +14,7 @@
     },
   },
   validation_dataset_reader: {
-    type : "bert_rationale_reader",
+    type : "rationale_reader",
     tokenizer: {
        word_splitter: "bert-basic"
     },
@@ -43,7 +43,7 @@
   },
   trainer: {
     num_epochs: 40,
-    patience: 15,
+    patience: 20,
     grad_norm: 10.0,
     validation_metric: "+accuracy",
     num_serialized_models_to_keep: 1,
