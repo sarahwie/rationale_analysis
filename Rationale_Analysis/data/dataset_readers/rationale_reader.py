@@ -11,6 +11,8 @@ from allennlp.data.token_indexers import TokenIndexer
 from allennlp.data.tokenizers import Token, Tokenizer
 from allennlp.data.tokenizers.sentence_splitter import SpacySentenceSplitter
 
+from numpy.random import RandomState
+
 
 @DatasetReader.register("rationale_reader")
 class RationaleReader(DatasetReader):
@@ -20,6 +22,7 @@ class RationaleReader(DatasetReader):
         tokenizer: Tokenizer,
         segment_sentences: bool = False,
         max_sequence_length: int = None,
+        keep_prob: float = 1.0,
         lazy: bool = False,
     ) -> None:
         super().__init__(lazy=lazy)
@@ -30,24 +33,29 @@ class RationaleReader(DatasetReader):
         if self._segment_sentences:
             self._sentence_segmenter = SpacySentenceSplitter()
 
+        self._keep_prob = keep_prob
+
         self._bert = "bert" in token_indexers
 
     @overrides
     def _read(self, file_path):
+        rs = RandomState(seed=1000)
         with open(cached_path(file_path), "r") as data_file:
             for line in data_file.readlines():
                 items = json.loads(line)
                 document = items["document"]
                 query = items.get("query", None)
                 label = items.get("label", None)
+                annotation_id = items.get("annotation_id", None)
                 if label is not None:
                     label = str(label)
-                instance = self.text_to_instance(document=document, query=query, label=label)
-                if instance is not None:
-                    yield instance
+                if rs.random_sample() < self._keep_prob: 
+                    instance = self.text_to_instance(annotation_id=annotation_id, document=document, query=query, label=label)
+                    if instance is not None:
+                        yield instance
 
     @overrides
-    def text_to_instance(self, document: str, query: str = None, label: str = None) -> Instance:  # type: ignore
+    def text_to_instance(self, annotation_id: str, document: str, query: str = None, label: str = None) -> Instance:  # type: ignore
         # pylint: disable=arguments-differ
         fields = {}
         if self._segment_sentences:
@@ -75,6 +83,7 @@ class RationaleReader(DatasetReader):
         )
 
         metadata = {
+            "annotation_id" : annotation_id,
             "tokens": tokens,
             "document": document,
             "query": query,

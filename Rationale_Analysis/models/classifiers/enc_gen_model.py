@@ -124,8 +124,6 @@ class EncoderGeneratorModel(RationaleBaseModel):
         new_output_dict = {}
         new_output_dict["predicted_label"] = output_dict["predicted_labels"].cpu().data.numpy()
         new_output_dict["label"] = output_dict["gold_labels"].cpu().data.numpy()
-        for m in output_dict["metadata"]:
-            del m["convert_tokens_to_instance"]
         new_output_dict["metadata"] = output_dict["metadata"]
         new_output_dict["rationales"] = output_dict["rationale"]
         new_output_dict["prob_z"] = output_dict["prob_z"]

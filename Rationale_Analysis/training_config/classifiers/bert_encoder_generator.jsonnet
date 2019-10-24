@@ -12,6 +12,7 @@
         do_lowercase : true,
       },
     },
+    keep_prob: std.extVar('KEEP_PROB')
   },
   validation_dataset_reader: {
     type : "rationale_reader",
