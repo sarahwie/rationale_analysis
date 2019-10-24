@@ -52,7 +52,7 @@ def main(args):
         })
 
     metrics = pd.DataFrame(metrics)
-    sns.pointplot(x=x_axis_field, y=y_axis_field, data=metrics)
+    sns.boxplot(x=x_axis_field, y=y_axis_field, data=metrics)
     plt.tight_layout()
     plt.savefig(os.path.join(global_exp_folder, global_exp_name, args.graph_name), bbox_inches='tight')
 
