@@ -64,7 +64,8 @@ def main(args):
         )
 
     metrics = pd.DataFrame(metrics)
-    sns.boxplot(x=x_axis_field, y=y_axis_field, data=metrics)
+    sns.pointplot(x=x_axis_field, y=y_axis_field, data=metrics, ci='sd')
+    sns.swarmplot(x=x_axis_field, y=y_axis_field, data=metrics)
     plt.tight_layout()
     plt.savefig(
         os.path.join(global_exp_folder, global_exp_name, x_axis_field + "_vs_" + y_axis_field + ".pdf"),
