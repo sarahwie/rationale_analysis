@@ -3,7 +3,7 @@ import os
 import json
 from itertools import product
 import subprocess
-
+from glob import glob
 import pandas as pd
 
 import seaborn as sns
@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 parser = argparse.ArgumentParser()
 parser.add_argument("--exp-folder", type=str, required=True)
 parser.add_argument("--exp-name", type=str, required=True)
-parser.add_argument("--search-space", type=str, required=True)
+parser.add_argument("--search-space", type=str, required=False)
 parser.add_argument("--dry-run", dest="dry_run", action="store_true")
 parser.add_argument("--cluster", dest="cluster", action="store_true")
 
@@ -21,11 +21,9 @@ parser.add_argument("--value", type=str, required=True)
 parser.add_argument("--metric", type=str, required=True)
 parser.add_argument("--deviation", type=str, required=True)
 
+
 def main(args):
     global_exp_name = args.exp_name
-    search_space = json.loads(args.search_space)
-    keys, values = zip(*search_space.items())
-
     global_exp_folder = args.exp_folder
 
     x_axis_field = args.value
@@ -34,28 +32,44 @@ def main(args):
 
     metrics = []
 
-    for prod in product(*values):
-        exp_dict = dict(zip(keys, prod))
-        exp_name = []
-        for k, v in zip(keys, prod):
-            exp_name.append(k + "=" + str(v))
+    exp_dicts = []
+    exp_names = []
 
-        exp_name = os.path.join(global_exp_name, ":".join(exp_name))
-        
-        metrics_file = json.load(open(os.path.join(global_exp_folder, exp_name, 'metrics.json')))
+    if args.search_space is not None:
+        search_space = json.loads(args.search_space)
+        keys, values = zip(*search_space.items())
+
+        for prod in product(*values):
+            exp_dict = dict(zip(keys, prod))
+            exp_name = []
+            for k, v in zip(keys, prod):
+                exp_name.append(k + "=" + str(v))
+
+            exp_dicts.append(exp_dict)
+            exp_names.append(":".join(exp_name))
+    else :
+        #globy glob
+        dirs = [f.name for f in os.scandir(os.path.join(global_exp_folder, global_exp_name)) if f.is_dir()]
+        for d in dirs :
+            exp_dict = [x.split('=') for x in d.strip().split(':')]
+            exp_dicts.append(dict([(x, float(y)) for x, y in exp_dict]))
+            exp_names.append(d)
+
+    for exp_name, exp_dict in zip(exp_names, exp_dicts):
+        metrics_file = json.load(open(os.path.join(global_exp_folder, global_exp_name, exp_name, "metrics.json")))
         metric = metrics_file[args.metric]
 
-        metrics.append({
-            x_axis_field : exp_dict[x_axis_field],
-            y_axis_field : metric,
-            deviation_field : exp_dict[deviation_field]
-        })
+        metrics.append(
+            {x_axis_field: exp_dict[x_axis_field], y_axis_field: metric, deviation_field: exp_dict[deviation_field]}
+        )
 
     metrics = pd.DataFrame(metrics)
-    breakpoint()
     sns.boxplot(x=x_axis_field, y=y_axis_field, data=metrics)
     plt.tight_layout()
-    plt.savefig(os.path.join(global_exp_folder, global_exp_name, args.graph_name), bbox_inches='tight')
+    plt.savefig(
+        os.path.join(global_exp_folder, global_exp_name, x_axis_field + "_vs_" + y_axis_field + ".pdf"),
+        bbox_inches="tight",
+    )
 
 
 if __name__ == "__main__":
