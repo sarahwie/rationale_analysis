@@ -1,5 +1,6 @@
 import json
 from typing import Dict
+import hashlib
 
 from overrides import overrides
 
@@ -46,7 +47,7 @@ class RationaleReader(DatasetReader):
                 document = items["document"]
                 query = items.get("query", None)
                 label = items.get("label", None)
-                annotation_id = items.get("annotation_id", None)
+                annotation_id = items.get("annotation_id", hashlib.sha1(document).hexdigest())
                 if label is not None:
                     label = str(label)
                 if rs.random_sample() < self._keep_prob: 

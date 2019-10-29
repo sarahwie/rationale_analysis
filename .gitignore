@@ -106,5 +106,3 @@ venv.bak/
 outputs/
 
 Datasets/*/data/*.jsonl
-
-!outputs/bert_classification/SST/bert_base_uncased/wrapper_saliency/*.jsonl

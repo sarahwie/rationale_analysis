@@ -16,18 +16,28 @@ Suggested use is to use Anaconda and do `pip install -r requirements.txt` .
 Experimental Setup
 ================== 
 
-1. Train Model A
+1. Train any model 
 
-```
+```bash
 CUDA_DEVICE=0 \
-DATASET_NAME=SST \
+DATASET_NAME=<dataset name> \
 CLASSIFIER=<classifier type> \
-DATA_BASE_PATH=Datasets/SST/data \
-EXP_NAME=<your model-A exp name> \
+DATA_BASE_PATH=<path to data> \
+EXP_NAME=<your experiment name> \
 bash Rationale_Analysis/commands/model_train_script.sh
 ```
+
+You `path to data` folder should contain three files - {train/dev/test}.jsonl . Each should be a list of dicts containing atleast two fields - 
+
+```python
+{
+    "document" : str,
+    "label" : str,
+    "query" : Optional[str]
+}
+```
     
-Output generated in `outputs/<classifier type>/SST/<your model-A exp name>/` .
+Output generated in `outputs/<classifier type>/<dataset name>/<your experiment name>/` .
 
 2. Generate saliency scores
 
