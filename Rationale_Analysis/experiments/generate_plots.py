@@ -2,12 +2,13 @@ import argparse
 import os
 import json
 from itertools import product
-import subprocess
-from glob import glob
 import pandas as pd
 
 import seaborn as sns
 import matplotlib.pyplot as plt
+
+import logging
+logging.basicConfig(level=logging.DEBUG)
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--exp-folder", type=str, required=True)
@@ -52,6 +53,8 @@ def main(args):
             exp_dicts.append(dict([(x, float(y)) for x, y in exp_dict]))
             exp_names.append(d)
 
+    logging.info("Experiments :")
+
     for exp_name, exp_dict in zip(exp_names, exp_dicts):
         metrics_file = json.load(open(os.path.join(global_exp_folder, global_exp_name, exp_name, "metrics.json")))
         metric = metrics_file[args.metric]
@@ -59,6 +62,8 @@ def main(args):
         metrics.append(
             {x_axis_field: exp_dict[x_axis_field], y_axis_field: metric, deviation_field: exp_dict[deviation_field]}
         )
+
+        logging.info(exp_name)
 
     metrics = pd.DataFrame(metrics)
     sns.pointplot(x=x_axis_field, y=y_axis_field, data=metrics, ci='sd')
