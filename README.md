@@ -48,7 +48,7 @@ CLASSIFIER=<classifier type> \
 DATA_BASE_PATH=Datasets/SST/data \
 EXP_NAME=<your model-A exp name> \
 SALIENCY=<saliency name> \
-bash Rationale_Analysis/commands/bert_saliency_script.sh
+bash Rationale_Analysis/commands/saliency_script.sh
 ```
 Output generate in `outputs/<classifier type>/SST/<your model-A exp name>/<saliency name>_saliency` .
 
