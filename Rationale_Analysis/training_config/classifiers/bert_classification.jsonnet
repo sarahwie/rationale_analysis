@@ -10,6 +10,7 @@
         pretrained_model : "bert-base-uncased",
         use_starting_offsets: true,
         do_lowercase : true,
+        truncate_long_sequence: false
       },
     },
     keep_prob: std.extVar('KEEP_PROB')
@@ -25,6 +26,7 @@
         pretrained_model : "bert-base-uncased",
         use_starting_offsets: true,
         do_lowercase : true,
+        truncate_long_sequence: false
       },
     },
   },
@@ -34,7 +36,7 @@
   model: {
     type: "bert_rationale_model",
     bert_model: 'bert-base-uncased',
-    requires_grad: '11',
+    requires_grad: 'pooler,11',
     dropout : 0.3,
   },
   iterator: {

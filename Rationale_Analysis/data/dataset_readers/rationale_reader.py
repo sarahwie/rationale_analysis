@@ -47,7 +47,11 @@ class RationaleReader(DatasetReader):
                 document = items["document"]
                 query = items.get("query", None)
                 label = items.get("label", None)
-                annotation_id = items.get("annotation_id", hashlib.sha1(document).hexdigest())
+                if 'annotation_id' in items :
+                    annotation_id = items["annotation_id"]
+                else :
+                    annotation_id = hashlib.sha1(document + (query if query is not None else '')).hexdigest()
+
                 if label is not None:
                     label = str(label)
                 if rs.random_sample() < self._keep_prob: 
@@ -73,7 +77,7 @@ class RationaleReader(DatasetReader):
 
         if query is not None:
             if self._bert:
-                tokens.append("[SEP]")
+                tokens.append(Token("[SEP]"))
                 tokens += self._tokenizer.tokenize(query)
             else:
                 fields["query"] = TextField(self._tokenizer.tokenize(query), self._token_indexers)

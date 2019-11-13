@@ -69,8 +69,7 @@ class EncoderGeneratorModel(RationaleBaseModel):
 
         for _ in range(self._samples):
             sample_z = sampler.sample() * mask
-            # reduced_document = self.regenerate_tokens(metadata, sample_z)
-            reduced_document = document
+            reduced_document = self.regenerate_tokens(metadata, sample_z)
             encoder_dict = self._encoder(
                 document=reduced_document,
                 sentence_indices=sentence_indices,
