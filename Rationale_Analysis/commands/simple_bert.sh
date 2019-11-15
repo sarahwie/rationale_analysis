@@ -1,0 +1,1 @@
+CLASSIFIER=bert_classification EXP_NAME=bert_base_uncased bash Rationale_Analysis/commands/model_a_train_script.sh

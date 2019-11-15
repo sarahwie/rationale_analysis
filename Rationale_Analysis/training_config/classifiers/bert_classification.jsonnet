@@ -6,11 +6,11 @@
     },
     token_indexers : {
       bert : {
-        type : "bert-pretrained",
+        type : "bert-pretrained-simple",
         pretrained_model : "bert-base-uncased",
         use_starting_offsets: true,
         do_lowercase : true,
-        truncate_long_sequence: false
+        truncate_long_sequences: false
       },
     },
     keep_prob: std.extVar('KEEP_PROB')
@@ -22,11 +22,11 @@
     },
     token_indexers : {
       bert : {
-        type : "bert-pretrained",
+        type : "bert-pretrained-simple",
         pretrained_model : "bert-base-uncased",
         use_starting_offsets: true,
         do_lowercase : true,
-        truncate_long_sequence: false
+        truncate_long_sequences: false
       },
     },
   },
@@ -36,18 +36,18 @@
   model: {
     type: "bert_rationale_model",
     bert_model: 'bert-base-uncased',
-    requires_grad: 'pooler,11',
-    dropout : 0.3,
+    requires_grad: 'pooler,11,10,9',
+    dropout : 0.2,
   },
   iterator: {
     type: "bucket",
     sorting_keys: [["document", "num_tokens"]],
-    batch_size : 20
+    batch_size : std.extVar('BSIZE')
   },
   trainer: {
     num_epochs: 40,
     patience: 20,
-    grad_norm: 10.0,
+    grad_norm: 5.0,
     validation_metric: "+accuracy",
     num_serialized_models_to_keep: 1,
     cuda_device: std.extVar("CUDA_DEVICE"),

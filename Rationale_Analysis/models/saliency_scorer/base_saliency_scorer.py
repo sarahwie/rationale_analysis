@@ -32,8 +32,8 @@ class SaliencyScorer(Model) :
         new_output_dict['saliency'] = [list(m) for m in attentions]
 
         for i, (t, a) in enumerate(zip(tokens_list, new_output_dict['saliency'])) :
-            if len(t) != sum([x != 0 for x in a]) :
-                breakpoint()
+            # if len(t) != sum([x != 0 for x in a]) :
+            #     breakpoint()
             new_output_dict['saliency'][i] = [round(float(x), 5) for x in a[:len(t)]]
             
         return new_output_dict
@@ -41,5 +41,5 @@ class SaliencyScorer(Model) :
     def score(self, **inputs) :
         raise NotImplementedError
 
-    def _init_from_model(self) :
+    def init_from_model(self) :
         pass

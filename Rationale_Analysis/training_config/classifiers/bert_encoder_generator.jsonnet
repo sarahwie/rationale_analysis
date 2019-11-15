@@ -6,10 +6,11 @@
     },
     token_indexers : {
       bert : {
-        type : "bert-pretrained",
+        type : "bert-pretrained-simple",
         pretrained_model : "bert-base-uncased",
         use_starting_offsets: true,
         do_lowercase : true,
+        truncate_long_sequences: false
       },
     },
     keep_prob: std.extVar('KEEP_PROB')
@@ -21,10 +22,11 @@
     },
     token_indexers : {
       bert : {
-        type : "bert-pretrained",
+        type : "bert-pretrained-simple",
         pretrained_model : "bert-base-uncased",
         use_starting_offsets: true,
         do_lowercase : true,
+        truncate_long_sequences: false
       },
     },
   },
@@ -34,36 +36,16 @@
   model: {
     type: "encoder_generator_rationale_model",
     generator: {
-      type: "simple_generator_model",
-      text_field_embedder: {
-          allow_unmatched_keys: true,
-          embedder_to_indexer_map: {
-            bert: ["bert", "bert-offsets"],
-          },
-          token_embedders: {
-            bert: {
-              type: "bert-pretrained",
-              pretrained_model: 'bert-base-uncased',
-              requires_grad: '11',
-              top_layer_only: true
-            },
-          },
-      },
-      seq2seq_encoder : {
-          type: 'pass_through',
-          input_dim: 768
-      },
-      dropout: 0.3,
-      feedforward_encoder:{
-          type: 'pass_through',
-          input_dim: 768
-      },
+      type: "bert_generator_model",
+      bert_model: 'bert-base-uncased',
+      requires_grad: 'pooler,11,10,9',
+      dropout : 0.2,
     },
     encoder : {
       type: "bert_rationale_model",
       bert_model: 'bert-base-uncased',
-      requires_grad: '11',
-      dropout : 0.3,
+      requires_grad: 'pooler,11,10,9',
+      dropout : 0.2,
     },
     samples: 1,
     reg_loss_lambda: std.extVar('LAMBDA'),
@@ -73,12 +55,12 @@
   iterator: {
     type: "bucket",
     sorting_keys: [["document", "num_tokens"]],
-    batch_size : 20
+    batch_size : std.extVar('BSIZE')
   },
   trainer: {
     num_epochs: 40,
     patience: 20,
-    grad_norm: 10.0,
+    grad_norm: 5.0,
     validation_metric: "+reg_accuracy",
     num_serialized_models_to_keep: 1,
     cuda_device: std.extVar("CUDA_DEVICE"),

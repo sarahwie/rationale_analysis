@@ -12,7 +12,7 @@ mkdir -p $SALIENCY_FOLDER_NAME
 function saliency {
     python -m Rationale_Analysis.commands.allennlp_runs saliency \
     --output-file $1 \
-    --batch-size 50 \
+    --batch-size 1 \
     --use-dataset-reader \
     --dataset-reader-choice validation \
     --predictor rationale_predictor \

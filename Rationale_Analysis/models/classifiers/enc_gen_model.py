@@ -2,7 +2,6 @@ from typing import Optional, Dict, Any
 
 import torch
 import torch.nn.functional as F
-import numpy as np
 import torch.distributions as D
 
 from allennlp.common.params import Params
@@ -62,58 +61,65 @@ class EncoderGeneratorModel(RationaleBaseModel):
         assert len(prob_z.shape) == 2
 
         sampler = D.bernoulli.Bernoulli(probs=prob_z)
+        if self.prediction_mode or not self.training:
+            sample_z = generator_dict["predicted_rationale"].float()
+        else:
+            sample_z = sampler.sample()
+
+        sample_z = sample_z * mask
+        reduced_document = self.regenerate_tokens(metadata, sample_z)
+        encoder_dict = self._encoder(
+            document=reduced_document,
+            sentence_indices=sentence_indices,
+            query=query,
+            label=label,
+            metadata=metadata,
+        )
 
         loss = 0.0
-
         output_dict = {}
 
-        for _ in range(self._samples):
-            sample_z = sampler.sample() * mask
-            reduced_document = self.regenerate_tokens(metadata, sample_z)
-            encoder_dict = self._encoder(
-                document=reduced_document,
-                sentence_indices=sentence_indices,
-                query=query,
-                label=label,
-                metadata=metadata,
-            )
+        if label is not None:
+            assert "loss" in encoder_dict
 
-            if label is not None:
-                assert "loss" in encoder_dict
+            log_prob_z = sampler.log_prob(sample_z)  # (B, L)
+            log_prob_z_sum = (mask * log_prob_z).sum(-1)  # (B,)
+            loss_sample = F.cross_entropy(encoder_dict["logits"], label, reduction="none")  # (B,)
 
-                log_prob_z = sampler.log_prob(sample_z)  # (B, L)
-                log_prob_z_sum = (mask * log_prob_z).sum(-1)  # (B,)
-                loss_sample = F.cross_entropy(encoder_dict["logits"], label, reduction="none")  # (B,)
+            sparsity = util.masked_mean(sample_z, mask, dim=-1)
+            censored_lasso_loss = F.relu(sparsity - self._desired_length)
 
-                lasso_loss = F.relu(util.masked_mean(sample_z, mask, dim=-1) - self._desired_length)
-                fused_lasso_loss = util.masked_mean((sample_z[:, 1:] - sample_z[:, :-1]).abs(), mask[:, :-1], dim=-1)
+            diff = (sample_z[:, 1:] - sample_z[:, :-1]).abs()
+            mask_last = mask[:, :-1]
+            fused_lasso_loss = diff.sum(-1) / mask_last.sum(-1)
 
-                self._loss_tracks["_lasso_loss"](lasso_loss.mean().item())
-                self._loss_tracks["_fused_lasso_loss"](fused_lasso_loss.mean().item())
-                self._loss_tracks["_base_loss"](loss_sample.mean().item())
+            self._loss_tracks["_lasso_loss"](sparsity.mean().item())
+            self._loss_tracks["_fused_lasso_loss"](fused_lasso_loss.mean().item())
+            self._loss_tracks["_base_loss"](loss_sample.mean().item())
 
-                base_loss = loss_sample
-                generator_loss = (
-                    loss_sample.detach()
-                    + lasso_loss * self._reg_loss_lambda
-                    + fused_lasso_loss * (self._reg_loss_mu * self._reg_loss_lambda)
-                ) * log_prob_z_sum
+            base_loss = loss_sample
+            generator_loss = (
+                loss_sample.detach()
+                + censored_lasso_loss * self._reg_loss_lambda
+                + fused_lasso_loss * (self._reg_loss_mu * self._reg_loss_lambda)
+            ) * log_prob_z_sum
 
-                loss += (base_loss + generator_loss).mean() / self._samples
+            loss += (base_loss + generator_loss).mean()
 
-            output_dict["probs"] = encoder_dict["probs"]
-            output_dict["predicted_labels"] = encoder_dict["predicted_labels"]
+        output_dict["probs"] = encoder_dict["probs"]
+        output_dict["predicted_labels"] = encoder_dict["predicted_labels"]
 
         output_dict["loss"] = loss
         output_dict["gold_labels"] = label
         output_dict["sentence_indices"] = sentence_indices
         output_dict["metadata"] = metadata
 
-        output_dict["rationale"] = [
-            [int(x) for x in np.nonzero(row)[0]] for row in ((prob_z > 0.5).long() * mask).cpu().data.numpy()
-        ]
-        output_dict["prob_z"] = [[float(x) for x in row] for row in prob_z.cpu().data.numpy()]
-        self._loss_tracks["_rat_length"](util.masked_mean((prob_z > 0.5).long(), mask, dim=-1).mean().item())
+        output_dict["rationale"] = generator_dict["predicted_rationale"]
+        output_dict["prob_z"] = generator_dict["prob_z"]
+
+        self._loss_tracks["_rat_length"](
+            util.masked_mean(generator_dict["predicted_rationale"], mask, dim=-1).mean().item()
+        )
 
         self._call_metrics(output_dict)
 
@@ -124,19 +130,22 @@ class EncoderGeneratorModel(RationaleBaseModel):
         new_output_dict["predicted_label"] = output_dict["predicted_labels"].cpu().data.numpy()
         new_output_dict["label"] = output_dict["gold_labels"].cpu().data.numpy()
         new_output_dict["metadata"] = output_dict["metadata"]
-        new_output_dict["rationales"] = output_dict["rationale"]
+        new_output_dict["rationales"] = [
+            [i for i, x in enumerate(b) if x == 1] for b in output_dict["rationale"].cpu().data.numpy()
+        ]
         new_output_dict["prob_z"] = output_dict["prob_z"]
         return new_output_dict
 
     def regenerate_tokens(self, metadata, sample_z):
         sample_z_cpu = sample_z.cpu().data.numpy()
         tokens = [m["tokens"] for m in metadata]
+        keep_tokens = [m['keep_tokens'] for m in metadata]
 
         assert len(tokens) == len(sample_z_cpu)
         instances = []
-        for words, mask in zip(tokens, sample_z_cpu):
+        for words, mask, keep in zip(tokens, sample_z_cpu, keep_tokens):
             mask = mask[: len(words)]
-            new_words = [w for i, (w, m) in enumerate(zip(words, mask)) if i == 0 or m == 1]
+            new_words = [w for i, (w, m, k) in enumerate(zip(words, mask, keep)) if i == 0 or m == 1 or k == 1]
 
             instance = metadata[0]["convert_tokens_to_instance"](new_words)
             instances.append(instance)

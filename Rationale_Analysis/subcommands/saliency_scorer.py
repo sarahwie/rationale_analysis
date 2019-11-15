@@ -67,6 +67,8 @@ from allennlp.data import Instance
 from allennlp.common import Params
 from allennlp.models.model import Model
 
+from tqdm import tqdm
+
 class SaliencyPredict(Subcommand):
     def add_subparser(
         self, name: str, parser: argparse._SubParsersAction
@@ -235,7 +237,7 @@ class _PredictManager:
         has_reader = self._dataset_reader is not None
         index = 0
         if has_reader:
-            for batch in lazy_groups_of(self._get_instance_data(), self._batch_size):
+            for batch in tqdm(lazy_groups_of(self._get_instance_data(), self._batch_size)):
                 for model_input_instance, result in zip(batch, self._predict_instances(batch)):
                     self._maybe_print_to_console_and_file(index, result, str(model_input_instance))
                     index = index + 1

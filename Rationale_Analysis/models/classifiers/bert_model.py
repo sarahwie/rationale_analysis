@@ -28,7 +28,7 @@ class BertRationaleModel(RationaleBaseModel):
             bert_model, num_labels=self._num_labels, hidden_dropout_prob=dropout, output_attentions=True
         )
 
-        self.embedding_layers = ['BertEmbedding']
+        self.embedding_layers = ["BertEmbedding"]
 
         if requires_grad in ["none", "all"]:
             for param in self._bert_model.parameters():
@@ -48,15 +48,23 @@ class BertRationaleModel(RationaleBaseModel):
     def forward(self, document, sentence_indices, query=None, label=None, metadata=None) -> Dict[str, Any]:
         input_ids = document["bert"]
         input_mask = (input_ids != 0).long()
-        input_offsets = document["bert-offsets"]
 
-        loss, logits, attentions = self._bert_model(input_ids, attention_mask=input_mask, labels=label)
+        outputs = self._bert_model(
+            input_ids, attention_mask=input_mask, position_ids=document["bert-position-ids"], labels=label
+        )
+
+        loss = 0
+        if label is not None :
+            loss, logits, attentions = outputs
+        else :
+            logits, attentions = outputs
+
         probs = torch.nn.Softmax(dim=-1)(logits)
 
         output_dict = {}
         attentions = attentions[-1][:, :, 0, :].mean(1)
 
-        output_dict['logits'] = logits
+        output_dict["logits"] = logits
         output_dict["loss"] = loss
         output_dict["probs"] = probs
         output_dict["predicted_labels"] = probs.argmax(-1)
@@ -67,9 +75,11 @@ class BertRationaleModel(RationaleBaseModel):
 
         output_dict["input_ids"] = input_ids
         output_dict["input_mask"] = input_mask
-        output_dict["input_offsets"] = input_offsets
+        output_dict["input_starting_offsets"] = document["bert-starting-offsets"]
+        output_dict["input_ending_offsets"] = document["bert-ending-offsets"]
 
-        self._call_metrics(output_dict)
+        if label is not None :
+            self._call_metrics(output_dict)
 
         return output_dict
 
@@ -81,7 +91,11 @@ class BertRationaleModel(RationaleBaseModel):
         return new_output_dict
 
     def normalize_attentions(self, output_dict) -> None:
-        attentions, input_offsets, input_mask = output_dict['attentions'], output_dict['input_offsets'], output_dict['input_mask']
+        attentions, input_offsets, input_mask = (
+            output_dict["attentions"],
+            output_dict["input_starting_offsets"],
+            output_dict["input_mask"],
+        )
         cumsumed_attentions = attentions.cumsum(-1)
 
         starting_offsets = input_offsets

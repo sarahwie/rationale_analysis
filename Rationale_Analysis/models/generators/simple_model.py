@@ -43,10 +43,16 @@ class SimpleGeneratorModel(Model):
         embedded_text = self._dropout(self._feedforward_encoder(embedded_text))
 
         logits = self._classification_layer(embedded_text)
-        probs = torch.sigmoid(logits)
+        probs = torch.sigmoid(logits)[:, :, 0]
 
         output_dict = {}
 
-        output_dict["probs"] = probs[:, :, 0]
+        output_dict["probs"] = probs * mask
+
+        predicted_rationale = (probs > 0.5).long()
+        output_dict['predicted_rationale'] = predicted_rationale * mask
+        output_dict["prob_z"] = probs * mask
 
         return output_dict
+
+    

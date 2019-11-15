@@ -47,20 +47,27 @@ class RationaleReader(DatasetReader):
                 document = items["document"]
                 query = items.get("query", None)
                 label = items.get("label", None)
-                if 'annotation_id' in items :
+                if "annotation_id" in items:
                     annotation_id = items["annotation_id"]
-                else :
-                    annotation_id = hashlib.sha1(document + (query if query is not None else '')).hexdigest()
+                else:
+                    annotation_id = hashlib.sha1(
+                        document.encode("utf-8")
+                        + (query.encode("utf-8") if query is not None else "".encode("utf-8"))
+                    ).hexdigest()
 
                 if label is not None:
                     label = str(label)
-                if rs.random_sample() < self._keep_prob: 
-                    instance = self.text_to_instance(annotation_id=annotation_id, document=document, query=query, label=label)
+                if rs.random_sample() < self._keep_prob:
+                    instance = self.text_to_instance(
+                        annotation_id=annotation_id, document=document, query=query, label=label
+                    )
                     if instance is not None:
                         yield instance
 
     @overrides
-    def text_to_instance(self, annotation_id: str, document: str, query: str = None, label: str = None) -> Instance:  # type: ignore
+    def text_to_instance(
+        self, annotation_id: str, document: str, query: str = None, label: str = None
+    ) -> Instance:  # type: ignore
         # pylint: disable=arguments-differ
         fields = {}
         if self._segment_sentences:
@@ -69,16 +76,19 @@ class RationaleReader(DatasetReader):
             sentence_splits = [document]
 
         tokens = [Token("<S>")]
+        keep_tokens = [1]
         sentence_indices = []
         for sentence in sentence_splits:
             word_tokens = self._tokenizer.tokenize(sentence)
             sentence_indices.append([len(tokens), len(tokens) + len(word_tokens)])
             tokens.extend(word_tokens)
+            keep_tokens.extend([0 for _ in range(len(word_tokens))])
 
         if query is not None:
             if self._bert:
-                tokens.append(Token("[SEP]"))
-                tokens += self._tokenizer.tokenize(query)
+                query_tokens = self._tokenizer.tokenize(query)
+                tokens.extend([Token('[SEP]')] + query_tokens)
+                keep_tokens.extend([1 for _ in range(len(query_tokens) + 1)])
             else:
                 fields["query"] = TextField(self._tokenizer.tokenize(query), self._token_indexers)
 
@@ -88,8 +98,9 @@ class RationaleReader(DatasetReader):
         )
 
         metadata = {
-            "annotation_id" : annotation_id,
+            "annotation_id": annotation_id,
             "tokens": tokens,
+            "keep_tokens" : keep_tokens,
             "document": document,
             "query": query,
             "convert_tokens_to_instance": self.convert_tokens_to_instance,
