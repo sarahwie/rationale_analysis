@@ -6,3 +6,4 @@ pandas
 scikit-learn
 p_tqdm
 hyperopt
+lime

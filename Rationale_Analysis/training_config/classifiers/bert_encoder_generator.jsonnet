@@ -58,7 +58,7 @@
     batch_size : std.extVar('BSIZE')
   },
   trainer: {
-    num_epochs: 40,
+    num_epochs: std.extVar('EPOCHS'),
     patience: 20,
     grad_norm: 5.0,
     validation_metric: "+reg_accuracy",

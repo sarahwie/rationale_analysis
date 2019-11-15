@@ -3,7 +3,7 @@
         "type" : "hp.loguniform",
         "options" : {
             "low" : -4,
-            "high" : 0
+            "high" : 0.1
         }
     },
     "MU" : {
