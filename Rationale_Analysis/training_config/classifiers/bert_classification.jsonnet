@@ -47,7 +47,7 @@
   trainer: {
     num_epochs: 40,
     patience: 20,
-    grad_norm: 5.0,
+    grad_norm: 0.0,
     validation_metric: "+accuracy",
     num_serialized_models_to_keep: 1,
     cuda_device: std.extVar("CUDA_DEVICE"),
