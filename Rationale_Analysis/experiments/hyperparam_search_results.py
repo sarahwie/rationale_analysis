@@ -32,7 +32,7 @@ def main(args):
             continue
 
     metric_to_select_on = args.metrics.split(',')[0]
-    metrics_selected = list(map(lambda x, y : (x, y[metric_to_select_on]), zip(configs, search_metrics)))
+    metrics_selected = list(map(lambda x : (x[0], x[1][metric_to_select_on]), zip(configs, search_metrics)))
     best_value_set = max(metrics_selected, key=lambda x : x[1] * (-1 if args.minimize else 1))
 
     print(metrics_selected)
