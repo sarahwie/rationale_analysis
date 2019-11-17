@@ -5,12 +5,17 @@ from itertools import product
 import subprocess
 
 parser = argparse.ArgumentParser()
+parser.add_argument("--script-type", type=str, required=True, choices=['model_a', 'saliency'])
 parser.add_argument("--exp-name", type=str, required=True)
 parser.add_argument("--search-space", type=str, required=True)
 parser.add_argument("--dry-run", dest="dry_run", action="store_true")
 parser.add_argument("--cluster", dest="cluster", action="store_true")
 parser.add_argument('--run-one', dest='run_one', action='store_true')
 
+map_scripts = {
+    'model_a' : 'model_a_train_script.sh',
+    'saliency' : 'saliency_script.sh'
+}
 
 def main(args):
     global_exp_name = args.exp_name
@@ -26,7 +31,7 @@ def main(args):
 
         exp_name = os.path.join(global_exp_name, ":".join(exp_name))
         new_env["EXP_NAME"] = exp_name
-        cmd = ["bash", "Rationale_Analysis/commands/model_a_train_script.sh"]
+        cmd = ["bash", "Rationale_Analysis/commands/" + map_scripts[args.script_type]]
         if args.cluster:
             cmd = ["sbatch", "Cluster_scripts/multi_gpu_sbatch.sh"] + cmd
         print("Running ", cmd, " with exp name ", exp_name)
