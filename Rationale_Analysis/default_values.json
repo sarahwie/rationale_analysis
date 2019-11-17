@@ -1,0 +1,32 @@
+{
+    "evinf" : {
+        "MAX_LENGTH_RATIO" : 0.1,
+        "MAX_LENGTH_PERCENT" : 10,
+        "MU" : 0.0,
+        "LAMBDA" : 0.05
+    },
+    "multirc" : {
+        "MAX_LENGTH_RATIO" : 0.2,
+        "MAX_LENGTH_PERCENT" : 20,
+        "MU" : 0.0,
+        "LAMBDA" : 0.05
+    },
+    "movies" : {
+        "MAX_LENGTH_RATIO" : 0.3,
+        "MAX_LENGTH_PERCENT" : 30,
+        "MU" : 0.0,
+        "LAMBDA" : 0.05
+    },
+    "SST" : {
+        "MAX_LENGTH_RATIO" : 0.2,
+        "MAX_LENGTH_PERCENT" : 20,
+        "MU" : 0.0,
+        "LAMBDA" : 0.05
+    },
+    "agnews" : {
+        "MAX_LENGTH_RATIO" : 0.2,
+        "MAX_LENGTH_PERCENT" : 20,
+        "MU" : 0.0,
+        "LAMBDA" : 0.05
+    }
+}

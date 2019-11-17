@@ -56,7 +56,7 @@ class RationaleReader(DatasetReader):
                     ).hexdigest()
 
                 if label is not None:
-                    label = str(label)
+                    label = str(label).replace(' ', '_')
                 if rs.random_sample() < self._keep_prob:
                     instance = self.text_to_instance(
                         annotation_id=annotation_id, document=document, query=query, label=label
@@ -79,7 +79,7 @@ class RationaleReader(DatasetReader):
         keep_tokens = [1]
         sentence_indices = []
         for sentence in sentence_splits:
-            word_tokens = self._tokenizer.tokenize(sentence)
+            word_tokens = self._tokenizer.tokenize(sentence)#[:700]
             sentence_indices.append([len(tokens), len(tokens) + len(word_tokens)])
             tokens.extend(word_tokens)
             keep_tokens.extend([0 for _ in range(len(word_tokens))])
