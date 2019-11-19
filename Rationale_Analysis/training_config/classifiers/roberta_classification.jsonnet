@@ -5,12 +5,9 @@
        word_splitter: "bert-basic"
     },
     token_indexers : {
-      bert : {
-        type : "bert-pretrained-simple",
-        pretrained_model : "bert-base-uncased",
-        use_starting_offsets: true,
-        do_lowercase : true,
-        truncate_long_sequences: false
+      roberta : {
+        type : "roberta-pretrained-simple",
+        model_name : "roberta-base",
       },
     },
     keep_prob: std.extVar('KEEP_PROB')
@@ -21,12 +18,9 @@
        word_splitter: "bert-basic"
     },
     token_indexers : {
-      bert : {
-        type : "bert-pretrained-simple",
-        pretrained_model : "bert-base-uncased",
-        use_starting_offsets: true,
-        do_lowercase : true,
-        truncate_long_sequences: false
+      roberta : {
+        type : "roberta-pretrained-simple",
+        model_name : "roberta-base",
       },
     },
   },
@@ -34,8 +28,8 @@
   validation_data_path: std.extVar('DEV_DATA_PATH'),
   test_data_path: std.extVar('TEST_DATA_PATH'),
   model: {
-    type: "bert_rationale_model",
-    bert_model: 'bert-base-uncased',
+    type: "roberta_rationale_model",
+    roberta_model: 'roberta-base',
     requires_grad: 'pooler,11,10,9',
     dropout : 0.2,
   },

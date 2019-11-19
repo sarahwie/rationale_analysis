@@ -1,4 +1,6 @@
-export TRAIN_DATA_PATH=${DATA_BASE_PATH:?"set data base path"}/train.jsonl
+export DATA_BASE_PATH = ${DATASETS_FOLDER:-Datasets}/${DATASET_NAME:?"Set dataset name"}/data
+
+export TRAIN_DATA_PATH=${DATA_BASE_PATH}/train.jsonl
 export DEV_DATA_PATH=$DATA_BASE_PATH/dev.jsonl
 export TEST_DATA_PATH=$DATA_BASE_PATH/test.jsonl
 
