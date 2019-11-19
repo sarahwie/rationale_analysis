@@ -46,3 +46,18 @@ def max_limited_min(weights, lengths, max_ratio, min_inst_ratio):
     return tok_idcs[:max_tokens]
 
 
+def max_limited_min_trunc(weights, lengths, max_ratio, min_inst_ratio, top_k):
+    '''
+    :param top_k: leave only up to this many words from each instance
+    '''
+    trunc_weights = np.array([trunc_arr(a, top_k) for a in weights])
+    trunc_lengths = [min(l, top_k) for l in lengths]
+    return max_limited_min(trunc_weights, trunc_lengths, max_ratio, min_inst_ratio)
+
+
+def trunc_arr(a, k):
+    kth_val = np.sort(a)[-k]
+    b = a * (a > kth_val)
+    return b /= np.linalg.norm(b, 1)
+
+
