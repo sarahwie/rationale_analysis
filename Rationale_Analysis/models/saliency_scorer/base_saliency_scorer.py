@@ -7,6 +7,9 @@ class SaliencyScorer(Model) :
         for v in self._model['model'].parameters() :
             v.requires_grad = False
 
+        self._model['model'].prediction_mode = True
+        self._model['model'].eval()
+
         super().__init__(self._model['model'].vocab)
         self._keepsake_param = torch.nn.Parameter(torch.Tensor([0.0]))
 

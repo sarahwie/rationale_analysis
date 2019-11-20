@@ -145,7 +145,7 @@ class EncoderGeneratorModel(RationaleBaseModel):
         instances = []
         for words, mask, keep in zip(tokens, sample_z_cpu, keep_tokens):
             mask = mask[: len(words)]
-            new_words = [w for i, (w, m, k) in enumerate(zip(words, mask, keep)) if i == 0 or m == 1 or k == 1]
+            new_words = [w for i, (w, m, k) in enumerate(zip(words, mask, keep)) if i == 0 or m == 1]# or k == 1]
 
             instance = metadata[0]["convert_tokens_to_instance"](new_words)
             instances.append(instance)

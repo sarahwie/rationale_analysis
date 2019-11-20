@@ -3,6 +3,7 @@ from allennlp.nn import util
 
 
 def generate_embeddings_for_pooling(sequence_tensor, span_starts, span_ends):
+    #(B, L, E), #(B, L), #(B, L)
     span_starts = span_starts.unsqueeze(-1)
     span_ends = (span_ends - 1).unsqueeze(-1)
     span_widths = span_ends - span_starts

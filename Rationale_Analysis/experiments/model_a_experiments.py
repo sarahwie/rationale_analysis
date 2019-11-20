@@ -5,7 +5,7 @@ from itertools import product
 import subprocess
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--script-type", type=str, required=True, choices=['model_a', 'saliency'])
+parser.add_argument("--script-type", type=str, required=True, choices=['model_a', 'saliency', 'model_b'])
 parser.add_argument("--exp-name", type=str, required=True)
 parser.add_argument("--search-space", type=str, required=True)
 parser.add_argument("--dry-run", dest="dry_run", action="store_true")
@@ -14,7 +14,8 @@ parser.add_argument('--run-one', dest='run_one', action='store_true')
 
 map_scripts = {
     'model_a' : 'model_a_train_script.sh',
-    'saliency' : 'saliency_script.sh'
+    'saliency' : 'saliency_script.sh',
+    'model_b' : 'rationale_and_model_b_script.sh'
 }
 
 def main(args):

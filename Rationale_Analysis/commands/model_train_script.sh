@@ -8,6 +8,6 @@ export TEST_DATA_PATH=$DATA_BASE_PATH/test.jsonl
 export OUTPUT_BASE_PATH=${OUTPUT_DIR:-outputs}/$CLASSIFIER/${DATASET_NAME:?"Set dataset name"}/${EXP_NAME:?"Set Exp name"}
 
 export SEED=${RANDOM_SEED:-100}
-export EPOCHS=${EPOCHS:-40}
+export EPOCHS=${EPOCHS:-20}
 
 allennlp train -s $OUTPUT_BASE_PATH --include-package Rationale_Analysis --force $CONFIG_FILE

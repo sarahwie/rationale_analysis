@@ -1,4 +1,4 @@
-export DATA_BASE_PATH = ${DATASETS_FOLDER:-Datasets}/${DATASET_NAME:?"Set dataset name"}/data
+export DATA_BASE_PATH=${DATASETS_FOLDER:-Datasets}/${DATASET_NAME:?"Set dataset name"}/data
 
 export TRAIN_DATA_PATH=${DATA_BASE_PATH}/train.jsonl
 export DEV_DATA_PATH=$DATA_BASE_PATH/dev.jsonl
@@ -16,13 +16,13 @@ function saliency {
     --output-file $1 \
     --batch-size 1 \
     --use-dataset-reader \
-    --dataset-reader-choice validation \
+    --dataset-reader-choice $3 \
     --predictor rationale_predictor \
     --include-package Rationale_Analysis \
     --silent --cuda-device ${CUDA_DEVICE:?"set cuda device"} \
     $OUTPUT_BASE_PATH/model.tar.gz $SALIENCY_CONFIG_FILE $2
 }
 
-saliency $SALIENCY_FOLDER_NAME/train.jsonl $TRAIN_DATA_PATH
-saliency $SALIENCY_FOLDER_NAME/dev.jsonl $DEV_DATA_PATH
-saliency $SALIENCY_FOLDER_NAME/test.jsonl $TEST_DATA_PATH
+saliency $SALIENCY_FOLDER_NAME/train.jsonl $TRAIN_DATA_PATH train
+saliency $SALIENCY_FOLDER_NAME/test.jsonl $TEST_DATA_PATH validation
+saliency $SALIENCY_FOLDER_NAME/dev.jsonl $DEV_DATA_PATH validation

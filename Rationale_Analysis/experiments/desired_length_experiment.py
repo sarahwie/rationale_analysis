@@ -1,7 +1,7 @@
 import subprocess
 import os
 
-search_space = {"KEEP_PROB": [0.2, 0.4, 0.6, 0.8, 1.0], "RANDOM_SEED": [1000, 2000, 3000, 4000, 5000]}
+search_space = {"MAX_LENGTH_RATIO": [0.05, 0.1, 0.25, 0.5]}
 
 import json
 
@@ -10,18 +10,17 @@ default_values = json.load(open("Rationale_Analysis/default_values.json"))
 import argparse
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--script-type", type=str, required=True, choices=['model_a', 'saliency', 'model_b'])
+parser.add_argument("--script-type", type=str, required=True, choices=['model_a', 'saliency'])
 parser.add_argument("--dry-run", dest="dry_run", action="store_true")
 parser.add_argument("--run-one", dest="run_one", action="store_true")
 parser.add_argument("--cluster", dest="cluster", action="store_true")
 
-exp_default = {'MU' : 0.0}
 
 def main(args):
     new_env = os.environ.copy()
     dataset = new_env["DATASET_NAME"]
     new_env.update({k:str(v) for k, v in default_values[dataset].items()})
-    new_env.update({k:str(v) for k, v in exp_default.items()})
+    new_env['KEEP_PROB'] = 1.0
 
     cmd = (
         [
