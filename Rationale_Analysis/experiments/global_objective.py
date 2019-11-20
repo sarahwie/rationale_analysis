@@ -30,7 +30,7 @@ def max_limited_min(weights, lengths, max_ratio, min_inst_ratio):
     glob_sort = global_argsort(weights)
     rev_glob_sort = reversed([(glob_sort[0][i], glob_sort[1][i]) for i in range(len(glob_sort[0]))])
     remaining = [math.ceil(l * min_inst_ratio) for l in lengths]
-    max_tokens = math.ceil(sum(length) * max_ratio)
+    max_tokens = math.ceil(sum(lengths) * max_ratio)
     buff = []  # buffer for at-threshold instance tokens
     tok_idcs = []  # return indices
     while max(remaining) > 0 and len(tok_idcs) < max_tokens:

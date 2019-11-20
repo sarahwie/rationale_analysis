@@ -70,10 +70,7 @@ class RationaleReader(DatasetReader):
     ) -> Instance:  # type: ignore
         # pylint: disable=arguments-differ
         fields = {}
-        if self._segment_sentences:
-            sentence_splits = self._sentence_segmenter.split_sentences(document)
-        else:
-            sentence_splits = [document]
+        sentence_splits = [document]
 
         tokens = [Token("<S>")]
         keep_tokens = [1]
@@ -93,9 +90,6 @@ class RationaleReader(DatasetReader):
                 fields["query"] = TextField(self._tokenizer.tokenize(query), self._token_indexers)
 
         fields["document"] = TextField(tokens, self._token_indexers)
-        fields["sentence_indices"] = ListField(
-            list(map(lambda x: SpanField(x[0], x[1] - 1, fields["document"]), sentence_indices))
-        )
 
         metadata = {
             "annotation_id": annotation_id,

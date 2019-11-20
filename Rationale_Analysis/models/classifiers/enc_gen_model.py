@@ -52,7 +52,7 @@ class EncoderGeneratorModel(RationaleBaseModel):
 
         initializer(self)
 
-    def forward(self, document, sentence_indices, query=None, label=None, metadata=None) -> Dict[str, Any]:
+    def forward(self, document, query=None, label=None, metadata=None) -> Dict[str, Any]:
         generator_dict = self._generator(document)
         mask = util.get_text_field_mask(document)
         assert "probs" in generator_dict
@@ -70,7 +70,6 @@ class EncoderGeneratorModel(RationaleBaseModel):
         reduced_document = self.regenerate_tokens(metadata, sample_z)
         encoder_dict = self._encoder(
             document=reduced_document,
-            sentence_indices=sentence_indices,
             query=query,
             label=label,
             metadata=metadata,
@@ -111,7 +110,6 @@ class EncoderGeneratorModel(RationaleBaseModel):
 
         output_dict["loss"] = loss
         output_dict["gold_labels"] = label
-        output_dict["sentence_indices"] = sentence_indices
         output_dict["metadata"] = metadata
 
         output_dict["rationale"] = generator_dict["predicted_rationale"]
