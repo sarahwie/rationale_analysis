@@ -58,6 +58,6 @@ def max_limited_min_trunc(weights, lengths, max_ratio, min_inst_ratio, top_k):
 def trunc_arr(a, k):
     kth_val = np.sort(a)[-k]
     b = a * (a > kth_val)
-    return b /= np.linalg.norm(b, 1)
+    return b / np.linalg.norm(b, 1)
 
 
