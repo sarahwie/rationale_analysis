@@ -140,7 +140,10 @@ def _get_predictor(args: argparse.Namespace) -> Predictor:
     params = Params.from_file(args.extractor_config_file)
 
     model = Model.from_params(vocab=None, params=params.pop('model'))
-    model.to(args.cuda_device)
+    if args.cuda_device >= 0:
+        model.to(args.cuda_device)
+    else:
+        model.to(None)
 
     archive = Archive(model=model, config=params)
 
