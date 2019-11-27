@@ -66,8 +66,19 @@ bash Rationale_Analysis/commands/rationale_extractor_script.sh
 ```
 Output generated in `outputs/<classifier type>/SST/<your model-A exp name>/<saliency name>_saliency/<rationale extraction type>_rationale/<your rationale exp name>`.
 
+4. Train model b from extracted rationales
+```bash
+CUDA_DEVICE=0 \
+DATASET_NAME=SST \
+CLASSIFIER=<classifier type> \
+EXP_NAME=<your model-A exp name> \
+SALIENCY=<saliency name> \
+RATIONALE=<rationale extraction type> \
+RATIONALE_EXP_NAME=<your exp name> \
+bash Rationale_Analysis/commands/model_b.sh
+```
 
-4. Extract Rationales and train model b.
+5 (replacing 3+4). Extract Rationales and train model b.
 
 ```bash
 CUDA_DEVICE=0 \
@@ -77,8 +88,9 @@ EXP_NAME=<your model-A exp name> \
 SALIENCY=<saliency name> \
 RATIONALE=<rationale extraction type> \
 RATIONALE_EXP_NAME=<your exp name> \
-bash Rationale_Analysis/commands/rationale_and_train_model_b_script.sh
+bash Rationale_Analysis/commands/rationale_and_model_b_script.sh
 ```
+
 
 Allowed values for now 
 
