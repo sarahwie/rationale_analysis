@@ -32,11 +32,12 @@ def main(args):
             continue
 
     metric_to_select_on = args.metrics.split(',')[0]
-    metrics_selected = list(map(lambda x : (x[0], x[1][metric_to_select_on]), zip(configs, search_metrics)))
-    best_value_set = max(metrics_selected, key=lambda x : x[1] * (-1 if args.minimize else 1))
+    metrics_selected = list(zip(configs, search_metrics))
+    best_value_set = max(range(len(metrics_selected)), key=lambda x : metrics_selected[x][1][metric_to_select_on] * (-1 if args.minimize else 1))
 
     print(metrics_selected)
     print(best_value_set)
+    print(metrics_selected[best_value_set])
 
     json.dump(best_value_set, open(os.path.join(exp_name, 'best_values.json'), 'w'))
 
