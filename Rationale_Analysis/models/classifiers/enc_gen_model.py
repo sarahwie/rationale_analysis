@@ -12,6 +12,7 @@ from Rationale_Analysis.models.classifiers.base_model import RationaleBaseModel
 from allennlp.data.dataset import Batch
 
 from allennlp.training.metrics import Average
+# from Rationale_Analysis.models.rationale_extractors.base_rationale_extractor import RationaleExtractor
 
 
 @Model.register("encoder_generator_rationale_model")
@@ -25,6 +26,7 @@ class EncoderGeneratorModel(RationaleBaseModel):
         reg_loss_lambda: float,
         desired_length: float,
         reg_loss_mu: float = 2,
+        rationale_extractor: Model = None,
         initializer: InitializerApplicator = InitializerApplicator(),
         regularizer: Optional[RegularizerApplicator] = None,
     ):
@@ -44,6 +46,7 @@ class EncoderGeneratorModel(RationaleBaseModel):
         self._reg_loss_lambda = reg_loss_lambda
         self._reg_loss_mu = reg_loss_mu
         self._desired_length = min(1.0, max(0.0, desired_length))
+        self._rationale_extractor = rationale_extractor
 
         self._loss_tracks = {
             k: Average()
@@ -62,7 +65,11 @@ class EncoderGeneratorModel(RationaleBaseModel):
 
         sampler = D.bernoulli.Bernoulli(probs=prob_z)
         if self.prediction_mode or not self.training:
-            sample_z = generator_dict["predicted_rationale"].float()
+            if self._rationale_extractor is None :
+                sample_z = generator_dict['predicted_rationale'].float()
+            else :
+                sample_z = self._rationale_extractor.extract_rationale(prob_z, metadata, as_one_hot=True)
+                sample_z = torch.Tensor(sample_z).to(prob_z.device).float()
         else:
             sample_z = sampler.sample()
 

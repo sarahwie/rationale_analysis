@@ -14,7 +14,7 @@ class TopKRationaleExtractor(RationaleExtractor) :
         output_dict = {'metadata' : metadata, 'rationale' : rationales}
         return output_dict
  
-    def extract_rationale(self, attentions, metadata):
+    def extract_rationale(self, attentions, metadata, as_one_hot=False):
         attentions = attentions.cpu().data.numpy()
         sentences = [x["tokens"] for x in metadata]
         rationales = []
@@ -24,6 +24,10 @@ class TopKRationaleExtractor(RationaleExtractor) :
             max_length = math.ceil(len(sentence) * self._max_length_ratio)
             
             top_ind, top_vals = np.argsort(attn)[-max_length:], np.sort(attn)[-max_length:]
+            if as_one_hot :
+                rationales.append([1 if i in top_ind else 0 for i in range(attentions.shape[1])])
+                continue
+            
             rationales.append({
                 'document' : " ".join([x for i, x in enumerate(sentence) if i in top_ind]),
                 'spans' : [{'span' : (i, i+1), 'value' : float(v)} for i, v in zip(top_ind, top_vals)],

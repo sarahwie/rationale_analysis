@@ -14,7 +14,7 @@ class MaxLengthRationaleExtractor(RationaleExtractor) :
         output_dict = {'metadata' : metadata, 'rationale' : rationales}
         return output_dict
  
-    def extract_rationale(self, attentions, metadata):
+    def extract_rationale(self, attentions, metadata, as_one_hot=False):
         # attentions : (B, L), metadata: List[Dict] of size B
         cumsumed_attention = attentions.cumsum(-1)
 
@@ -33,6 +33,9 @@ class MaxLengthRationaleExtractor(RationaleExtractor) :
             i, j, v = index, index + max_length, best_v[index]
 
             top_ind = list(range(i, j))
+            if as_one_hot :
+                rationales.append([1 if i in top_ind else 0 for i in range(attentions.shape[1])])
+                continue
 
             rationales.append({
                 'document' : " ".join([x for idx, x in enumerate(sentence) if idx in top_ind]),
