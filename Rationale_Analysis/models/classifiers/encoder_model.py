@@ -45,7 +45,7 @@ class EncoderRationaleModel(RationaleBaseModel):
 
         initializer(self)
 
-    def forward(self, document, sentence_indices, query=None, label=None, metadata=None) -> Dict[str, Any]:
+    def forward(self, document, query=None, label=None, metadata=None) -> Dict[str, Any]:
         embedded_text = self._text_field_embedder(document)
         mask = util.get_text_field_mask(document).float()
 
@@ -68,7 +68,6 @@ class EncoderRationaleModel(RationaleBaseModel):
         output_dict["probs"] = probs
         output_dict["predicted_labels"] = probs.argmax(-1)
         output_dict["gold_labels"] = label
-        output_dict["sentence_indices"] = sentence_indices
         output_dict["attentions"] = attentions
         output_dict["metadata"] = metadata
 

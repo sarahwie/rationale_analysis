@@ -22,7 +22,7 @@ class RationaleBaseModel(Model):
         
         initializer(self)
 
-    def forward(self, document, sentence_indices, query=None, labels=None, metadata=None):
+    def forward(self, document, query=None, labels=None, metadata=None):
         raise NotImplementedError
 
     def decode(self, output_dict):

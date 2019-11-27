@@ -10,10 +10,13 @@ default_values = json.load(open("Rationale_Analysis/default_values.json"))
 import argparse
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--script-type", type=str, required=True, choices=['model_a', 'saliency', 'model_b'])
+parser.add_argument("--script-type", type=str, required=True)
 parser.add_argument("--dry-run", dest="dry_run", action="store_true")
 parser.add_argument("--run-one", dest="run_one", action="store_true")
 parser.add_argument("--cluster", dest="cluster", action="store_true")
+parser.add_argument("--output-dirs", type=str, nargs='+')
+parser.add_argument("--names", type=str, nargs='+')
+parser.add_argument("--metric", type=str, nargs='+')
 
 exp_default = {'MU' : 0.0}
 
@@ -42,7 +45,53 @@ def main(args):
     print(new_env)
     subprocess.run(cmd, check=True, env=new_env)
 
+from itertools import product
+import pandas as pd
+import seaborn as sns
+import matplotlib
+# matplotlib.use('tkagg')
+import matplotlib.pyplot as plt
+import numpy as np
+
+def results(args) :
+    keys, values = zip(*search_space.items())
+
+    data = []
+    for name, output_dir, metric in zip(args.names, args.output_dirs, args.metric) :
+        for prod in product(*values):
+            exp_dict = {'Model' : name}
+            exp_name = []
+            for k, v in zip(keys, prod):
+                exp_name.append(k + "=" + str(v))
+                exp_dict[k] = v
+
+            try :
+                metrics = json.load(open(output_dir.replace('EXP_NAME_HERE', ":".join(exp_name))))
+                if 'test_' + metric in metrics :
+                    m = metrics['test_' + metric]
+                else :
+                    m = metrics[metric]
+                exp_dict[args.metric[-1]] = max(0, m)
+            except FileNotFoundError:
+                print(exp_name)
+                continue
+
+            data.append(exp_dict)
+
+    sns.set(style="ticks", rc={"lines.linewidth": 0.7})
+    data = pd.DataFrame(data)
+    fig = plt.figure(figsize=(4, 3))
+    sns.pointplot(x='KEEP_PROB', y=args.metric[-1], hue='Model', ci='sd', data=data, estimator=np.median, markers=['x']*len(args.names))
+
+    plt.tight_layout()
+    # plt.legend().remove()
+    sns.despine()
+    plt.xlabel("Training Set Size")
+    plt.savefig('SST-comparison.pdf', bbox_inches='tight')
 
 if __name__ == "__main__":
     args = parser.parse_args()
-    main(args)
+    if args.script_type == 'results' :
+        results(args)
+    else :
+        main(args)
