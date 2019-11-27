@@ -59,5 +59,55 @@ def trunc_arr(a, k):
     kth_val = np.sort(a)[-k]
     b = a * (a > kth_val)
     return b / np.linalg.norm(b, 1)
+    
+    
+def max_contig(weights, lengths, max_ratio, min_inst_ratio):
+    '''
+    dynamic programming for finding globally maximizing contiguous segments.
+    we will save, for each instance, the best k-length contiguous segment for all k-s in a pre-defined range, along with its total weights, then DP our way to an optimal solution.
+    '''
+    budget = math.ceil(sum(lengths) * max_ratio)
+    n = len(lengths)
+    min_per_i = [math.ceil(l * min_inst_ratio) for l in lengths]
+    glob_max = max(lengths)
+    
+    cumu_ws = weights.cumsum(-1)
+    
+    w_diffs = []  # the benefit from adding j tokens to the i-th instance
+    by_k_idcs = []  # location pointer for w_diffs
+    
+    for i, mn, mx in zip(cumu_ws, min_per_i, lengths):
+        i_ws = np.zeros(mx-mn+2)  # last is going to be pit for max calcs (eternal bad candidate)
+        i_idcs = []
+        for l in range(mn, mx+1):
+            sums = [i[l-1]] + [i[k+l]-i[k] for k in range(mx-l)]  # checked manually, should be fine
+            j = np.argmax(sums)
+            i_ws[l-mn]=sums[j]
+            i_idcs.append(j)
+        i_ws -= i_ws[0]
+        i_ws[-1] = float('-inf')
+        w_diffs.append(i_ws[1:])
+        by_k_idcs.append(i_idcs)
+    
+    rem_budg = budget - sum(min_per_i)  # remaining budget, we're starting with all mins.
+    
+    # greedily add one token each step based on maximal gain
+    inst_pointers = np.zeros(n, dtype='int32')  # remember which length we're at for each instance
+    exp_gains = np.array([d[0] for d in w_diffs])  # expected gain for adding token; will be updated each instance
+    
+    for _ in range(rem_budg):
+        next_i = exp_gains.argmax()
+        inst_pointers[next_i] += 1
+        exp_gains[next_i] = w_diffs[next_i][inst_pointers[next_i]] - exp_gains[next_i]
+    
+    opt = []
+    for i in range(n):
+        # winning length for instance
+        l = min_per_i[i] + inst_pointers[i]  # '+1' is implicit because inst_pointers[i] was a *candidate*
+        # location for length's best ngram
+        j = by_k_idcs[i][inst_pointers[i]]
+        opt.append((j, j+l))
+    
+    return opt
 
 
