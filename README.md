@@ -66,6 +66,8 @@ bash Rationale_Analysis/commands/rationale_extractor_script.sh
 ```
 Output generated in `outputs/<classifier type>/SST/<your model-A exp name>/<saliency name>_saliency/<rationale extraction type>_rationale/<your rationale exp name>`.
 
+**Note:** A global rationale type would also require setting `BATCH_SIZE` to an arbitrarily large number.
+
 4. Train model b from extracted rationales
 ```bash
 CUDA_DEVICE=0 \
