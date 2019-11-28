@@ -12,15 +12,20 @@ export SALIENCY_FOLDER_NAME=$OUTPUT_BASE_PATH/${SALIENCY}_saliency
 mkdir -p $SALIENCY_FOLDER_NAME
 
 function saliency {
-    python -m Rationale_Analysis.commands.allennlp_runs saliency \
-    --output-file $1 \
-    --batch-size 1 \
-    --use-dataset-reader \
-    --dataset-reader-choice $3 \
-    --predictor rationale_predictor \
-    --include-package Rationale_Analysis \
-    --silent --cuda-device ${CUDA_DEVICE:?"set cuda device"} \
-    $OUTPUT_BASE_PATH/model.tar.gz $SALIENCY_CONFIG_FILE $2
+    if [ -f "$1" ]; then
+        echo "$1 exists ... Not running Saliency ";
+    else 
+        echo "$1 do not exist RUNNING SALIENCY ";
+        # python -m Rationale_Analysis.commands.allennlp_runs saliency \
+        # --output-file $1 \
+        # --batch-size 1 \
+        # --use-dataset-reader \
+        # --dataset-reader-choice $3 \
+        # --predictor rationale_predictor \
+        # --include-package Rationale_Analysis \
+        # --silent --cuda-device ${CUDA_DEVICE:?"set cuda device"} \
+        # $OUTPUT_BASE_PATH/model.tar.gz $SALIENCY_CONFIG_FILE $2;
+    fi;
 }
 
 saliency $SALIENCY_FOLDER_NAME/train.jsonl $TRAIN_DATA_PATH train
