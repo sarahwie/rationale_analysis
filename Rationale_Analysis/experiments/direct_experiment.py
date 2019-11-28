@@ -24,6 +24,7 @@ def main(args):
         new_env = os.environ.copy()
         new_env.update({k:str(v) for k, v in default_values[dataset].items()})
         new_env['KEEP_PROB'] = str(1.0)
+        new_env['DATASET_NAME'] = dataset
 
         ith_search_space = {}
         ith_search_space['RANDOM_SEED'] = [1000, 2000, 3000, 4000, 5000]
@@ -44,6 +45,7 @@ def main(args):
             + (["--cluster"] if args.cluster else [])
         )
 
+        print(default_values[dataset])
         print(ith_search_space)
         subprocess.run(cmd, check=True, env=new_env)
 
