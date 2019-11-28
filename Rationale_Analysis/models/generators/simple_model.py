@@ -31,7 +31,7 @@ class SimpleGeneratorModel(Model):
         self._feedforward_encoder = feedforward_encoder
         self._classifier_input_dim = feedforward_encoder.get_output_dim()
 
-        self._classification_layer = torch.nn.Linear(self._classifier_input_dim, 1)
+        self._classification_layer = torch.nn.Linear(self._classifier_input_dim, 2)
 
         initializer(self)
 
@@ -43,7 +43,7 @@ class SimpleGeneratorModel(Model):
         embedded_text = self._dropout(self._feedforward_encoder(embedded_text))
 
         logits = self._classification_layer(embedded_text)
-        probs = torch.sigmoid(logits)[:, :, 0]
+        probs = torch.nn.Softmax(dim=-1)(logits)[:, :, 1]
 
         output_dict = {}
 

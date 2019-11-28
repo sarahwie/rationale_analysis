@@ -11,13 +11,13 @@
         "MAX_LENGTH_PERCENT" : 20,
         "MU" : 2.0,
         "LAMBDA" : 0.20,
-        "BSIZE" : 8
+        "BSIZE" : 4
     },
     "movies" : {
         "MAX_LENGTH_RATIO" : 0.3,
         "MAX_LENGTH_PERCENT" : 30,
-        "MU" : 0.0,
-        "LAMBDA" : 0.05,
+        "MU" : 2.0,
+        "LAMBDA" : 0.18,
         "BSIZE": 1
     },
     "SST" : {

@@ -10,7 +10,7 @@ from Rationale_Analysis.models.classifiers.base_model import RationaleBaseModel
 from allennlp.modules import Seq2SeqEncoder, TextFieldEmbedder, FeedForward
 from allennlp.modules.attention import Attention
 
-@Model.register("encoder_rationale_model")
+@Model.register("simple_rationale_model")
 class EncoderRationaleModel(RationaleBaseModel):
     def __init__(
         self,
@@ -60,10 +60,6 @@ class EncoderRationaleModel(RationaleBaseModel):
 
         output_dict = {}
 
-        if label is not None :
-            loss = F.cross_entropy(logits, label)
-            output_dict["loss"] = loss
-
         output_dict['logits'] = logits
         output_dict["probs"] = probs
         output_dict["predicted_labels"] = probs.argmax(-1)
@@ -71,8 +67,11 @@ class EncoderRationaleModel(RationaleBaseModel):
         output_dict["attentions"] = attentions
         output_dict["metadata"] = metadata
 
-        self._call_metrics(output_dict)
-
+        if label is not None :
+            loss = F.cross_entropy(logits, label)
+            output_dict["loss"] = loss
+            self._call_metrics(output_dict)
+            
         return output_dict
 
     def _decode(self, output_dict) -> Dict[str, Any]:

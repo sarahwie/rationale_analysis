@@ -84,7 +84,6 @@ def results(args) :
     sns.pointplot(x='KEEP_PROB', y=args.metric[-1], hue='Model', ci='sd', data=data, estimator=np.median, markers=['x']*len(args.names))
 
     plt.tight_layout()
-    # plt.legend().remove()
     sns.despine()
     plt.xlabel("Training Set Size")
     plt.savefig('SST-comparison.pdf', bbox_inches='tight')
