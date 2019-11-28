@@ -9,23 +9,10 @@ export RATIONALE_FOLDER_NAME=$OUTPUT_BASE_PATH/${SALIENCY}_saliency/${RATIONALE}
 
 mkdir -p $RATIONALE_FOLDER_NAME
 
-function rationale {
-    if [ -f "$1" ]; then
-        echo "$1 exists ... Not running Rationale ";
-    else 
-        echo "$1 do not exist RUNNING RATIONALE ";
-        python -m Rationale_Analysis.commands.allennlp_runs rationale \
-        --output-file $1 \
-        --batch-size ${BSIZE:-50} \
-        --use-dataset-reader \
-        --dataset-reader-choice validation \
-        --predictor rationale_predictor \
-        --include-package Rationale_Analysis \
-        --silent --cuda-device ${CUDA_DEVICE:?"set cuda device"} \
-        $RATIONALE_CONFIG_FILE $2;
-    fi;
-}
+DATA_BASE_PATH=$RATIONALE_FOLDER_NAME \
+OUTPUT_BASE_PATH=${OUTPUT_BASE_PATH}/${SALIENCY}_saliency/${RATIONALE}_rationale/${RATIONALE_EXP_NAME}/${RATIONALE_CLASSIFIER}/${RC_EXP_NAME} \
+bash Rationale_Analysis/commands/rationale_train_script.sh
 
-rationale $RATIONALE_FOLDER_NAME/train.jsonl $TRAIN_DATA_PATH
-rationale $RATIONALE_FOLDER_NAME/dev.jsonl $DEV_DATA_PATH
-rationale $RATIONALE_FOLDER_NAME/test.jsonl $TEST_DATA_PATH
+DATA_BASE_PATH=$RATIONALE_FOLDER_NAME \
+OUTPUT_BASE_PATH=${OUTPUT_BASE_PATH}/${SALIENCY}_saliency/${RATIONALE}_rationale/${RATIONALE_EXP_NAME}/${RATIONALE_CLASSIFIER}/${RC_EXP_NAME} \
+bash Rationale_Analysis/commands/rationale_predict_script.sh
