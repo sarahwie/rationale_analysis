@@ -3,7 +3,7 @@
         "MAX_LENGTH_RATIO" : [0.05, 0.1],
         "MAX_LENGTH_PERCENT" : [5, 10],
         "LAMBDA" : [0.1, 0.05],
-        "MU" : [0.002, 5.0]
+        "MU" : [0.0, 5.0]
     },
     "multirc" : {
         "MAX_LENGTH_RATIO" : [0.1, 0.2],
