@@ -44,7 +44,7 @@ def main(args):
 
 
     values = pd.DataFrame(values)
-    print(values.groupby(['dataset', 'saliency', 'rationale', 'extraction'])).agg([np.mean, np.std])
+    print(values.groupby(['dataset', 'saliency', 'rationale', 'extraction']).agg([np.mean, np.std]))
         
 
 if __name__ == '__main__' : 
