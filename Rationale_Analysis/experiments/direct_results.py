@@ -6,14 +6,58 @@ import argparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--output-dir')
+parser.add_argument('--lei', dest='lei', action='store_true')
 
-def main(args):
+def main_lei(args):
+    datasets = ["SST", "agnews", "multirc", "evinf", "movies"]
+
+    seeds = [1000, 2000, 3000, 4000, 5000]
+    values = []
+    for d, seed in product(datasets, seeds):
+        path = os.path.join(
+            args.output_dir,
+            "bert_encoder_generator",
+            d,
+            "direct",
+            "RANDOM_SEED=" + str(seed),
+        )
+
+        metrics_file_direct = os.path.join(path, 'metrics.json')
+        if os.path.isfile(metrics_file_direct) :
+            metrics = json.load(open(metrics_file_direct))
+            metrics = {k:v for k, v in metrics.items() if k.startswith('test_fscore') or k.startswith('test__fscore')}
+            values.append({
+                'dataset' : d, 'value' : np.mean(list(metrics.values()))
+            })
+
+
+    values = pd.DataFrame(values)
+    print(values.groupby(['dataset']).agg([np.mean, np.std]))
+
+def main_ours(args):
     datasets = ["SST", "agnews", "multirc", "evinf", "movies"]
     saliency = ["wrapper", "simple_gradient"]
     rationale = ["top_k", "max_length"]
 
     seeds = [1000, 2000, 3000, 4000, 5000]
     values = []
+
+    for d, seed in product(datasets, seeds):
+        path = os.path.join(
+            args.output_dir,
+            "bert_classification",
+            d,
+            "direct",
+            "RANDOM_SEED=" + str(seed),
+        )
+        metrics_file_direct = os.path.join(path, 'metrics.json')
+        if os.path.isfile(metrics_file_direct) :
+            metrics = json.load(open(metrics_file_direct))
+            metrics = {k:v for k, v in metrics.items() if k.startswith('test_fscore') or k.startswith('test__fscore')}
+            values.append({
+                'dataset' : d, 'saliency' : None, 'rationale' : None, 'extraction' : None, 'value' : np.mean(list(metrics.values()))
+            })
+
     for d, s, r, seed in product(datasets, saliency, rationale, seeds):
         path = os.path.join(
             args.output_dir,
@@ -49,4 +93,7 @@ def main(args):
 
 if __name__ == '__main__' : 
     args = parser.parse_args()
-    main(args)
+    if args.lei :
+        main_lei(args)
+    else :
+        main_ours(args)
