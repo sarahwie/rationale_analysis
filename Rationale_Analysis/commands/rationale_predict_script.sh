@@ -12,15 +12,20 @@ export SEED=${RANDOM_SEED:-100}
 export EPOCHS=${EPOCHS:-40}
 
 function predict {
-    allennlp predict \
-    --output-file $1 \
-    --batch-size ${BSIZE} \
-    --use-dataset-reader \
-    --dataset-reader-choice validation \
-    --predictor rationale_predictor \
-    --include-package Rationale_Analysis \
-    --silent --cuda-device ${CUDA_DEVICE:?"set cuda device"} \
-    $OUTPUT_BASE_PATH/model.tar.gz $2
+    if [ -f "$1" ]; then
+        echo "$1 exists ... Not running Rationale Train ";
+    else 
+        echo "$1 do not exist RUNNING RATIONALE Train ";
+        allennlp predict \
+        --output-file $1 \
+        --batch-size ${BSIZE} \
+        --use-dataset-reader \
+        --dataset-reader-choice validation \
+        --predictor rationale_predictor \
+        --include-package Rationale_Analysis \
+        --silent --cuda-device ${CUDA_DEVICE:?"set cuda device"} \
+        $OUTPUT_BASE_PATH/model.tar.gz $2;
+    fi;
 }
 
 predict $OUTPUT_BASE_PATH/train.jsonl $TRAIN_DATA_PATH

@@ -41,7 +41,7 @@ class EncoderRationaleModel(RationaleBaseModel):
 
         self._vector = torch.nn.Parameter(torch.randn((1, self._seq2seq_encoder.get_output_dim(),)))
 
-        self.embedding_layers = [type(self._text_field_embedder)]
+        self.embedding_layers = [str(type(self._text_field_embedder))]
 
         initializer(self)
 
