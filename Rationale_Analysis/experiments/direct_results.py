@@ -55,8 +55,10 @@ def main_ours(args):
             metrics = json.load(open(metrics_file_direct))
             metrics = {k:v for k, v in metrics.items() if k.startswith('test_fscore') or k.startswith('test__fscore')}
             values.append({
-                'dataset' : d, 'saliency' : None, 'rationale' : None, 'extraction' : None, 'value' : np.mean(list(metrics.values()))
+                'dataset' : d, 'saliency' : 'Base', 'rationale' : 'Base', 'extraction' : 'Base', 'value' : np.mean(list(metrics.values()))
             })
+        else :
+            print("Not found", metrics_file_direct)
 
     for d, s, r, seed in product(datasets, saliency, rationale, seeds):
         path = os.path.join(
