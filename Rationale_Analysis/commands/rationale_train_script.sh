@@ -9,12 +9,12 @@ export default_output_base_path=${OUTPUT_DIR:-outputs}/${RATIONALE_CLASSIFIER}/$
 export OUTPUT_BASE_PATH=${OUTPUT_BASE_PATH:-$default_output_base_path}
 
 export SEED=${RANDOM_SEED:-100}
-export EPOCHS=${EPOCHS:-40}
+export EPOCHS=${EPOCHS:-20}
 
 
 if [[ -f "${OUTPUT_BASE_PATH}/metrics.json" ]]; then
     echo "${OUTPUT_BASE_PATH}/metrics.json exists ... . Not running Training ";
 else 
     echo "${OUTPUT_BASE_PATH}/metrics.json exists ... . TRAINING ";
-    # allennlp train -s $OUTPUT_BASE_PATH --include-package Rationale_Analysis --force $CONFIG_FILE
+    allennlp train -s $OUTPUT_BASE_PATH --include-package Rationale_Analysis --force $CONFIG_FILE
 fi;
