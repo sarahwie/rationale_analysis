@@ -29,7 +29,7 @@ def main(args):
         metrics_file_direct = os.path.join(path, 'model_b', 'metrics.json')
         if os.path.isfile(metrics_file_direct) :
             metrics = json.load(open(metrics_file_direct))
-            metrics = {k:v for k, v in metrics_file_direct.items() if k.startswith('test_fscore') or k.startswith('test__fscore')}
+            metrics = {k:v for k, v in metrics.items() if k.startswith('test_fscore') or k.startswith('test__fscore')}
             values.append({
                 'dataset' : d, 'saliency' : s, 'rationale' : r, 'extraction' : 'direct', 'value' : np.mean(list(metrics.values()))
             })
@@ -37,7 +37,7 @@ def main(args):
         metrics_file_direct = os.path.join(path, 'bert_generator_saliency', 'direct', 'model_b', 'metrics.json')
         if os.path.isfile(metrics_file_direct) :
             metrics = json.load(open(metrics_file_direct))
-            metrics = {k:v for k, v in metrics_file_direct.items() if k.startswith('test_fscore') or k.startswith('test__fscore')}
+            metrics = {k:v for k, v in metrics.items() if k.startswith('test_fscore') or k.startswith('test__fscore')}
             values.append({
                 'dataset' : d, 'saliency' : s, 'rationale' : r, 'extraction' : 'crf', 'value' : np.mean(list(metrics.values()))
             })
