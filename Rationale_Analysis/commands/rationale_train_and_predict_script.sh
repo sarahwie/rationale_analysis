@@ -16,4 +16,3 @@ OUTPUT_BASE_PATH=${OUTPUT_BASE_PATH}/${SALIENCY}_saliency/${RATIONALE}_rationale
 bash Rationale_Analysis/commands/rationale_predict_script.sh
 
 sbatch Cluster_scripts/multi_gpu_sbatch.sh bash Rationale_Analysis/commands/rationale_train_model_b_train_script.sh;
-
