@@ -15,4 +15,4 @@ DATA_BASE_PATH=$RATIONALE_FOLDER_NAME \
 OUTPUT_BASE_PATH=${OUTPUT_BASE_PATH}/${SALIENCY}_saliency/${RATIONALE}_rationale/${RATIONALE_EXP_NAME}/${RATIONALE_CLASSIFIER}/${RC_EXP_NAME} \
 bash Rationale_Analysis/commands/rationale_predict_script.sh
 
-# sbatch Cluster_scripts/multi_gpu_sbatch.sh bash Rationale_Analysis/commands/rationale_train_model_b_train_script.sh;
+sbatch Cluster_scripts/multi_gpu_sbatch.sh bash Rationale_Analysis/commands/rationale_train_model_b_train_script.sh;
