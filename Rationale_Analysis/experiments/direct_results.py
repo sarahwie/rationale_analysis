@@ -21,7 +21,8 @@ def main_lei(args):
             d,
             "direct",
             "RANDOM_SEED=" + str(seed),
-            r + '_rationale'
+            r + '_rationale',
+            'direct'
         )
 
         metrics_file_direct = os.path.join(path, 'test_metrics.json')
