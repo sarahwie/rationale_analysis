@@ -11,12 +11,17 @@ export RATIONALE_FOLDER_NAME=$OUTPUT_BASE_PATH/${RATIONALE}_rationale/${RATIONAL
 mkdir -p $RATIONALE_FOLDER_NAME
 
 function rationale {
-    allennlp evaluate \
-    --output-file $1 \
-    --include-package Rationale_Analysis \
-    --cuda-device ${CUDA_DEVICE:?"set cuda device"} \
-    -o "{model: {rationale_extractor : {type : '${RATIONALE}', max_length_ratio: ${MAX_LENGTH_PERCENT} / 100}}}" \
-    $OUTPUT_BASE_PATH/model.tar.gz $2
+    if [[ -f "$1" ]]; then 
+        echo "$1 exists .. Not Predicting";
+    else 
+        echo "$1 do not exist ... Predicting";
+        allennlp evaluate \
+        --output-file $1 \
+        --include-package Rationale_Analysis \
+        --cuda-device ${CUDA_DEVICE:?"set cuda device"} \
+        -o "{model: {rationale_extractor : {type : '${RATIONALE}', max_length_ratio: ${MAX_LENGTH_PERCENT} / 100}}}" \
+        $OUTPUT_BASE_PATH/model.tar.gz $2
+    fi;
 }
 
 rationale $RATIONALE_FOLDER_NAME/dev_metrics.json $DEV_DATA_PATH
