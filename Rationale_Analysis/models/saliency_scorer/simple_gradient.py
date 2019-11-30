@@ -24,6 +24,8 @@ class GradientSaliency(SaliencyScorer) :
 
     def score(self, **kwargs) :
         with torch.enable_grad() :
+            self._model['model'].train()
+            
             for param in self._embedding_layer['embedding_layer'].parameters():
                 param.requires_grad = True
 
