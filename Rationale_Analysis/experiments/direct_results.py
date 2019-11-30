@@ -25,9 +25,9 @@ def main_lei(args):
         metrics_file_direct = os.path.join(path, 'metrics.json')
         if os.path.isfile(metrics_file_direct) :
             metrics = json.load(open(metrics_file_direct))
-            metrics = {k:v for k, v in metrics.items() if k.startswith('test_fscore') or k.startswith('test__fscore')}
+            metrics_1 = {k:v for k, v in metrics.items() if k.startswith('test_fscore') or k.startswith('test__fscore')}
             values.append({
-                'dataset' : d, 'value' : np.mean(list(metrics.values()))
+                'dataset' : d, 'value' : np.mean(list(metrics_1.values())), 'rat_length' : metrics['test__rat_length']
             })
 
 
