@@ -40,7 +40,7 @@ def main_lei(args):
 def main_ours(args):
     datasets = ["SST", "agnews", "multirc", "evinf", "movies"]
     saliency = ["wrapper", "simple_gradient"]
-    rationale = ["top_k", "max_length"]
+    rationale = ["top_k", "max_length", 'global_top_k', 'global_contig']
 
     seeds = [1000, 2000, 3000, 4000, 5000]
     values = []
