@@ -5,14 +5,15 @@ from itertools import product
 import argparse
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--output-dir')
-parser.add_argument('--lei', dest='lei', action='store_true')
+parser.add_argument("--output-dir")
+parser.add_argument("--lei", dest="lei", action="store_true")
+
 
 def main_lei(args):
     datasets = ["SST", "agnews", "multirc", "evinf", "movies"]
 
     seeds = [1000, 2000, 3000, 4000, 5000]
-    rationale = ['top_k', 'max_length']
+    rationale = ["top_k", "max_length"]
     values = []
     for d, r, seed in product(datasets, rationale, seeds):
         path = os.path.join(
@@ -21,48 +22,47 @@ def main_lei(args):
             d,
             "direct",
             "RANDOM_SEED=" + str(seed),
-            r + '_rationale',
-            'direct'
+            r + "_rationale",
+            "direct",
         )
 
-        metrics_file_direct = os.path.join(path, 'test_metrics.json')
-        if os.path.isfile(metrics_file_direct) :
+        metrics_file_direct = os.path.join(path, "test_metrics.json")
+        if os.path.isfile(metrics_file_direct):
             metrics = json.load(open(metrics_file_direct))
-            metrics_1 = {k:v for k, v in metrics.items() if k.startswith('_fscore') or k.startswith('fscore')}
-            values.append({
-                'dataset' : d, 'rationale' : r, 'value' : np.mean(list(metrics_1.values()))
-            })
-
+            metrics_1 = {k: v for k, v in metrics.items() if k.startswith("_fscore") or k.startswith("fscore")}
+            values.append({"dataset": d, "rationale": r, "value": np.mean(list(metrics_1.values()))})
 
     values = pd.DataFrame(values)
-    values = values.groupby(['dataset', 'rationale']).agg(lambda x : str(np.median(x)) + ' (' + str(np.min(x)) + '+' + str(np.max(x)) + ')')
-    
+    values = values.groupby(["dataset", "rationale"]).agg(
+        lambda x: str(np.median(x)) + " (" + str(np.min(x)) + "+" + str(np.max(x)) + ")"
+    )
+    print(values)
 
 
 def main_ours(args):
     datasets = ["SST", "agnews", "multirc", "evinf", "movies"]
     saliency = ["wrapper", "simple_gradient"]
-    rationale = ["top_k", "max_length", 'global_top_k', 'global_contig']
+    rationale = ["top_k", "max_length", "global_top_k", "global_contig"]
 
     seeds = [1000, 2000, 3000, 4000, 5000]
     values = []
 
     for d, seed in product(datasets, seeds):
-        path = os.path.join(
-            args.output_dir,
-            "bert_classification",
-            d,
-            "direct",
-            "RANDOM_SEED=" + str(seed),
-        )
-        metrics_file_direct = os.path.join(path, 'metrics.json')
-        if os.path.isfile(metrics_file_direct) :
+        path = os.path.join(args.output_dir, "bert_classification", d, "direct", "RANDOM_SEED=" + str(seed))
+        metrics_file_direct = os.path.join(path, "metrics.json")
+        if os.path.isfile(metrics_file_direct):
             metrics = json.load(open(metrics_file_direct))
-            metrics = {k:v for k, v in metrics.items() if k.startswith('test_fscore') or k.startswith('test__fscore')}
-            values.append({
-                'dataset' : d, 'saliency' : 'Base', 'rationale' : 'Base', 'extraction' : 'Base', 'value' : np.mean(list(metrics.values()))
-            })
-        else :
+            metrics = {k: v for k, v in metrics.items() if k.startswith("test_fscore") or k.startswith("test__fscore")}
+            values.append(
+                {
+                    "dataset": d,
+                    "saliency": "Base",
+                    "rationale": "Base",
+                    "extraction": "Base",
+                    "value": np.mean(list(metrics.values())),
+                }
+            )
+        else:
             print("Not found", metrics_file_direct)
 
     for d, s, r, seed in product(datasets, saliency, rationale, seeds):
@@ -77,30 +77,46 @@ def main_ours(args):
             "direct",
         )
 
-        metrics_file_direct = os.path.join(path, 'model_b', 'metrics.json')
-        if os.path.isfile(metrics_file_direct) :
+        metrics_file_direct = os.path.join(path, "model_b", "metrics.json")
+        if os.path.isfile(metrics_file_direct):
             metrics = json.load(open(metrics_file_direct))
-            metrics = {k:v for k, v in metrics.items() if k.startswith('test_fscore') or k.startswith('test__fscore')}
-            values.append({
-                'dataset' : d, 'saliency' : s, 'rationale' : r, 'extraction' : 'direct', 'value' : np.mean(list(metrics.values()))
-            })
+            metrics = {k: v for k, v in metrics.items() if k.startswith("test_fscore") or k.startswith("test__fscore")}
+            values.append(
+                {
+                    "dataset": d,
+                    "saliency": s,
+                    "rationale": r,
+                    "extraction": "direct",
+                    "value": np.mean(list(metrics.values())),
+                }
+            )
 
-        metrics_file_direct = os.path.join(path, 'bert_generator_saliency', 'direct', 'model_b', 'metrics.json')
-        if os.path.isfile(metrics_file_direct) :
+        metrics_file_direct = os.path.join(path, "bert_generator_saliency", "direct", "model_b", "metrics.json")
+        if os.path.isfile(metrics_file_direct):
             metrics = json.load(open(metrics_file_direct))
-            metrics = {k:v for k, v in metrics.items() if k.startswith('test_fscore') or k.startswith('test__fscore')}
-            values.append({
-                'dataset' : d, 'saliency' : s, 'rationale' : r, 'extraction' : 'crf', 'value' : np.mean(list(metrics.values()))
-            })
-
+            metrics = {k: v for k, v in metrics.items() if k.startswith("test_fscore") or k.startswith("test__fscore")}
+            values.append(
+                {
+                    "dataset": d,
+                    "saliency": s,
+                    "rationale": r,
+                    "extraction": "crf",
+                    "value": np.mean(list(metrics.values())),
+                }
+            )
 
     values = pd.DataFrame(values)
-    print(values.groupby(['dataset', 'saliency', 'rationale', 'extraction']).agg([np.median, np.min, np.max]))
-        
+    values = values.groupby(["dataset", "saliency", "rationale", "extraction"]).agg(
+        lambda x: str(np.median(x)) + " (" + str(np.min(x)) + "+" + str(np.max(x)) + ")"
+    )
 
-if __name__ == '__main__' : 
+    print(values)
+
+
+if __name__ == "__main__":
     args = parser.parse_args()
-    if args.lei :
+    if args.lei:
         main_lei(args)
-    else :
+    else:
         main_ours(args)
+
