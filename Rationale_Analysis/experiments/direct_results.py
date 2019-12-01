@@ -35,7 +35,9 @@ def main_lei(args):
 
 
     values = pd.DataFrame(values)
-    print(values.groupby(['dataset', 'rationale']).agg([np.median, np.min, np.max]))
+    values = values.groupby(['dataset', 'rationale']).agg(lambda x : str(np.median(x)) + ' (' + str(np.min(x)) + '+' + str(np.max(x)) + ')')
+    
+
 
 def main_ours(args):
     datasets = ["SST", "agnews", "multirc", "evinf", "movies"]
