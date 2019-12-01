@@ -34,7 +34,7 @@ def main_lei(args):
 
     values = pd.DataFrame(values)
     values = values.groupby(["dataset", "rationale"]).agg(
-        lambda x: str(np.median(x)) + " (" + str(np.min(x)) + "+" + str(np.max(x)) + ")"
+        lambda x: "{:0.2f}".format(np.median(x)) + " (" + "{:0.2f}".format(np.min(x)) + "-" + "{:0.2f}".format(np.max(x)) + ")"
     )
     print(values)
 
@@ -107,7 +107,7 @@ def main_ours(args):
 
     values = pd.DataFrame(values)
     values = values.groupby(["dataset", "saliency", "rationale", "extraction"]).agg(
-        lambda x: str(np.median(x)) + " (" + str(np.min(x)) + "+" + str(np.max(x)) + ")"
+        lambda x: "{:0.2f}".format(np.median(x)) + " (" + "{:0.2f}".format(np.min(x)) + "-" + "{:0.2f}".format(np.max(x)) + ")"
     )
 
     print(values)
