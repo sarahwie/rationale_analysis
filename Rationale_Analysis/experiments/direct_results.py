@@ -35,7 +35,7 @@ def main_lei(args):
 
 
     values = pd.DataFrame(values)
-    print(values.groupby(['dataset', 'rationale']).agg([np.median, np.std, np.max]))
+    print(values.groupby(['dataset', 'rationale']).agg([np.median, np.min, np.max]))
 
 def main_ours(args):
     datasets = ["SST", "agnews", "multirc", "evinf", "movies"]
@@ -93,7 +93,7 @@ def main_ours(args):
 
 
     values = pd.DataFrame(values)
-    print(values.groupby(['dataset', 'saliency', 'rationale', 'extraction']).agg([np.median, np.std, np.max]))
+    print(values.groupby(['dataset', 'saliency', 'rationale', 'extraction']).agg([np.median, np.min, np.max]))
         
 
 if __name__ == '__main__' : 
