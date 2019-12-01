@@ -80,3 +80,8 @@ class EncoderRationaleModel(RationaleBaseModel):
         new_output_dict["label"] = output_dict["gold_labels"].cpu().data.numpy()
         new_output_dict["metadata"] = output_dict["metadata"]
         return new_output_dict
+
+    def prepare_for_gradient(self) :
+        for name, param in self._text_field_embedder.named_parameters():
+            if '11' in name :
+                param.requires_grad = True

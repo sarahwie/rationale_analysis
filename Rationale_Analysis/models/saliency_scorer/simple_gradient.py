@@ -22,12 +22,16 @@ class GradientSaliency(SaliencyScorer) :
 
         self._embedding_layer['embedding_layer'] = _embedding_layer[0]
 
+
     def score(self, **kwargs) :
         with torch.enable_grad() :
             self._model['model'].train()
             
-            for param in self._embedding_layer['embedding_layer'].parameters():
-                param.requires_grad = True
+            if hasattr(self._model['model'], 'prepare_for_gradient') :
+                self._model['model'].prepare_for_gradient()
+            else :
+                for param in self._embedding_layer['embedding_layer'].parameters():
+                    param.requires_grad = True
 
             embeddings_list = []
             def forward_hook(module, inputs, output):  # pylint: disable=unused-argument
