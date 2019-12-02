@@ -28,7 +28,7 @@ def main(args):
         new_env["EXP_NAME"] = exp_name
         cmd = ["bash", "Rationale_Analysis/commands/" + args.script_type]
         if args.cluster:
-            cmd = ["sbatch", "--time=" + os.environ['t2sd'], "Cluster_scripts/multi_gpu_sbatch.sh"] + cmd
+            cmd = ["sbatch", "--time", '$(t2sd)', "Cluster_scripts/multi_gpu_sbatch.sh"] + cmd
         print("Running ", cmd, " with exp name ", exp_name)
         if not args.dry_run:
             subprocess.run(cmd, check=False, env=new_env)
