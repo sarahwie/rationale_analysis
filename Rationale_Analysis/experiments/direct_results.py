@@ -42,7 +42,7 @@ def main_lei(args):
             )
 
     values = pd.DataFrame(values)
-    idx = values.groupby(["dataset", "saliency", "rationale", "extraction"])['value'].transform(max) == values['values']
+    idx = values.groupby(["dataset", "saliency", "rationale", "extraction"])['value'].transform(max) == values['value']
     print(values[idx])
     
     values_g = values.groupby(["dataset", "saliency", "rationale", "extraction"]).agg(
@@ -128,7 +128,7 @@ def main_ours(args):
             )
 
     values = pd.DataFrame(values)
-    idx = values.groupby(["dataset", "saliency", "rationale", "extraction"])['value'].transform(max) == values['values']
+    idx = values.groupby(["dataset", "saliency", "rationale", "extraction"])['value'].transform(max) == values['value']
     print(values[idx])
 
     values_g = values.groupby(["dataset", "saliency", "rationale", "extraction"]).agg(
