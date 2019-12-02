@@ -63,12 +63,15 @@ class EncoderGeneratorModel(RationaleBaseModel):
         prob_z = generator_dict["probs"]
         assert len(prob_z.shape) == 2
 
+        output_dict = {}
+
         sampler = D.bernoulli.Bernoulli(probs=prob_z)
         if self.prediction_mode or not self.training:
             if self._rationale_extractor is None :
                 sample_z = generator_dict['predicted_rationale'].float()
             else :
                 sample_z = self._rationale_extractor.extract_rationale(prob_z, metadata, as_one_hot=True)
+                output_dict["rationale"] = self._rationale_extractor.extract_rationale(prob_z, metadata, as_one_hot=False)
                 sample_z = torch.Tensor(sample_z).to(prob_z.device).float()
         else:
             sample_z = sampler.sample()
@@ -83,7 +86,7 @@ class EncoderGeneratorModel(RationaleBaseModel):
         )
 
         loss = 0.0
-        output_dict = {}
+        
 
         if label is not None:
             assert "loss" in encoder_dict
@@ -119,8 +122,8 @@ class EncoderGeneratorModel(RationaleBaseModel):
         output_dict["gold_labels"] = label
         output_dict["metadata"] = metadata
 
-        output_dict["rationale"] = generator_dict["predicted_rationale"]
         output_dict["prob_z"] = generator_dict["prob_z"]
+        output_dict["predicted_rationale"] = generator_dict["predicted_rationale"]
 
         self._loss_tracks["_rat_length"](
             util.masked_mean(generator_dict["predicted_rationale"], mask, dim=-1).mean().item()
@@ -138,7 +141,7 @@ class EncoderGeneratorModel(RationaleBaseModel):
         new_output_dict["rationales"] = [
             [i for i, x in enumerate(b) if x == 1] for b in output_dict["rationale"].cpu().data.numpy()
         ]
-        new_output_dict["prob_z"] = output_dict["prob_z"]
+        # new_output_dict["prob_z"] = output_dict["prob_z"]
         return new_output_dict
 
     def regenerate_tokens(self, metadata, sample_z):
