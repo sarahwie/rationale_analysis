@@ -30,14 +30,32 @@ def main_lei(args):
         if os.path.isfile(metrics_file_direct):
             metrics = json.load(open(metrics_file_direct))
             metrics_1 = {k: v for k, v in metrics.items() if k.startswith("_fscore") or k.startswith("fscore")}
-            values.append({"dataset": d, "rationale": r, "saliency" : '-', 'extraction' : '-', "value": np.mean(list(metrics_1.values()))})
+            values.append(
+                {
+                    "dataset": d,
+                    "rationale": r,
+                    "saliency": "-",
+                    "extraction": "-",
+                    "seed": seed,
+                    "value": np.mean(list(metrics_1.values())),
+                }
+            )
 
     values = pd.DataFrame(values)
-    values = values.groupby(["dataset", "saliency", "rationale", "extraction"]).agg(
-        lambda x: "{:0.2f}".format(np.median(x)) + " (" + "{:0.2f}".format(np.min(x)) + "-" + "{:0.2f}".format(np.max(x)) + ")"
+    idx = values.groupby(["dataset", "saliency", "rationale", "extraction"])['value'].transform(max) == values['values']
+    print(values[idx])
+    
+    values_g = values.groupby(["dataset", "saliency", "rationale", "extraction"]).agg(
+        lambda x: "{:0.2f}".format(np.median(x))
+        + " ("
+        + "{:0.2f}".format(np.min(x))
+        + "-"
+        + "{:0.2f}".format(np.max(x))
+        + ")"
     )
-    print(values)
-    print(values['value'].unstack(level=0).to_latex())
+
+    print(values_g)
+    print(values_g["value"].unstack(level=0).to_latex())
 
 
 def main_ours(args):
@@ -60,6 +78,7 @@ def main_ours(args):
                     "saliency": "Base",
                     "rationale": "Base",
                     "extraction": "Base",
+                    "seed": seed,
                     "value": np.mean(list(metrics.values())),
                 }
             )
@@ -88,6 +107,7 @@ def main_ours(args):
                     "saliency": s,
                     "rationale": r,
                     "extraction": "direct",
+                    "seed": seed,
                     "value": np.mean(list(metrics.values())),
                 }
             )
@@ -102,17 +122,26 @@ def main_ours(args):
                     "saliency": s,
                     "rationale": r,
                     "extraction": "crf",
+                    "seed": seed,
                     "value": np.mean(list(metrics.values())),
                 }
             )
 
     values = pd.DataFrame(values)
-    values = values.groupby(["dataset", "saliency", "rationale", "extraction"]).agg(
-        lambda x: "{:0.2f}".format(np.median(x)) + " (" + "{:0.2f}".format(np.min(x)) + "-" + "{:0.2f}".format(np.max(x)) + ")"
+    idx = values.groupby(["dataset", "saliency", "rationale", "extraction"])['value'].transform(max) == values['values']
+    print(values[idx])
+
+    values_g = values.groupby(["dataset", "saliency", "rationale", "extraction"]).agg(
+        lambda x: "{:0.2f}".format(np.median(x))
+        + " ("
+        + "{:0.2f}".format(np.min(x))
+        + "-"
+        + "{:0.2f}".format(np.max(x))
+        + ")"
     )
 
-    print(values)
-    print(values['value'].unstack(level=0).to_latex())
+    print(values_g)
+    print(values_g["value"].unstack(level=0).to_latex())
 
 
 if __name__ == "__main__":
