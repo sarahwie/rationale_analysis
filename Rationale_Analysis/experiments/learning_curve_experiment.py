@@ -14,6 +14,9 @@ parser.add_argument("--script-type", type=str, required=True)
 parser.add_argument("--dry-run", dest="dry_run", action="store_true")
 parser.add_argument("--run-one", dest="run_one", action="store_true")
 parser.add_argument("--cluster", dest="cluster", action="store_true")
+parser.add_argument("--total-data", type=float, required=True)
+
+
 parser.add_argument("--output-dirs", type=str, nargs='+')
 parser.add_argument("--names", type=str, nargs='+')
 parser.add_argument("--metric", type=str, nargs='+')
@@ -25,6 +28,8 @@ def main(args):
     dataset = new_env["DATASET_NAME"]
     new_env.update({k:str(v) for k, v in default_values[dataset].items()})
     new_env.update({k:str(v) for k, v in exp_default.items()})
+
+    search_space['KEEP_PROB'] = [x/args.total_data for x in search_space['KEEP_PROB']]
 
     cmd = (
         [
