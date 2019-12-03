@@ -172,6 +172,7 @@ def analyse_globality(values):
 
     values = values.groupby(["dataset", "saliency", "rationale"]).apply(compute_t_stat)
     print(values)
+    print(values.to_latex(float_format="{:0.4f}".format))
 
 
 if __name__ == "__main__":
