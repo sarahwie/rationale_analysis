@@ -1,0 +1,3 @@
+CLASSIFIER=bert_encoder_generator sbatch Cluster_scripts/multi_gpu_sbatch.sh bash Rationale_Analysis/commands/model_a_train_script.sh;
+CLASSIFIER=bert_classification bash Rationale_Analysis/commands/model_a_train_script.sh;
+CLASSIFIER=bert_classification sbatch Cluster_scripts/multi_gpu_sbatch.sh bash Rationale_Analysis/hack_commands/top_k_wrapper_direct.sh;
