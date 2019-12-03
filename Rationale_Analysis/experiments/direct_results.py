@@ -168,7 +168,7 @@ def analyse_globality(values):
 
     def compute_t_stat(x):
         if "global" in x and len(x[x["global"] == True]) == len(x[x["global"] == False]["value"]):
-            stat, pval = ttest_ind(x[x["global"] == True]["value"], x[x["global"] == False]["value"], equal_var=False)
+            stat, pval = ttest_rel(x[x["global"] == True]["value"], x[x["global"] == False]["value"])
             diff = x[x["global"] == True]["value"].mean() - x[x["global"] == False]["value"].mean()
             return pd.Series({"delta": diff, "stat": stat, "pval": pval})
         return pd.Series({"delta": -1, "stat": -1, "pval": -1})
@@ -185,7 +185,7 @@ def analyse_crf(values):
 
     def compute_t_stat(x):
         if len(x[x["extraction"] == "crf"]) == len(x[x["extraction"] == "direct"]):
-            stat, pval = ttest_ind(x[x["extraction"] == "crf"]["value"], x[x["extraction"] == "direct"]["value"], equal_var=False)
+            stat, pval = ttest_rel(x[x["extraction"] == "crf"]["value"], x[x["extraction"] == "direct"]["value"])
             diff = x[x["extraction"] == "crf"]["value"].mean() - x[x["extraction"] == "direct"]["value"].mean()
             return pd.Series({"delta": diff, "stat": stat, "pval": pval})
         return pd.Series({"delta": -1, "stat": -1, "pval": -1})
