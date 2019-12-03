@@ -42,9 +42,9 @@ def main_lei(args):
             )
 
     values = pd.DataFrame(values)
-    idx = values.groupby(["dataset", "saliency", "rationale", "extraction"])['value'].transform(max) == values['value']
+    idx = values.groupby(["dataset", "saliency", "rationale", "extraction"])["value"].transform(max) == values["value"]
     print(values[idx])
-    
+
     values_g = values.groupby(["dataset", "saliency", "rationale", "extraction"]).agg(
         lambda x: "{:0.2f}".format(np.median(x))
         + " ("
@@ -112,9 +112,9 @@ def main_ours(args):
                 }
             )
 
-        if r.startswith('global') :
+        if r.startswith("global"):
             continue
-        
+
         metrics_file_direct = os.path.join(path, "bert_generator_saliency", "direct", "model_b", "metrics.json")
         if os.path.isfile(metrics_file_direct):
             metrics = json.load(open(metrics_file_direct))
@@ -131,7 +131,7 @@ def main_ours(args):
             )
 
     values = pd.DataFrame(values)
-    idx = values.groupby(["dataset", "saliency", "rationale", "extraction"])['value'].transform(max) == values['value']
+    idx = values.groupby(["dataset", "saliency", "rationale", "extraction"])["value"].transform(max) == values["value"]
     print(values[idx])
 
     values_g = values.groupby(["dataset", "saliency", "rationale", "extraction"]).agg(
@@ -145,6 +145,26 @@ def main_ours(args):
 
     print(values_g)
     print(values_g["value"].unstack(level=0).to_latex())
+
+    analyse_globality(values)
+
+    return values
+
+
+from scipy.stats import ttest_ind
+
+
+def analyse_globality(values):
+    m = {"top_k": "top_k", "max_length": "contiguous", "global_top_k": "top_k", "global_contig": "contiguous"}
+
+    values = values[values.extraction == "direct"]
+    values["global"] = values["rationale"].apply(lambda x: "global" in x)
+    values["rationale"] = values["rationale"].apply(lambda x: m[x])
+
+    values = values.groupby(["dataset", "saliency", "rationale"]).agg(
+        lambda x: ttest_ind(x[x["global"] == "True"]['value'], x[x["global"] == "False"]['value'], equal_var=False)
+    )
+    print(values)
 
 
 if __name__ == "__main__":
