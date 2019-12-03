@@ -156,7 +156,7 @@ def main_ours(args):
     return values
 
 
-from scipy.stats import ttest_ind
+from scipy.stats import ttest_ind, ttest_rel
 
 
 def analyse_globality(values):
