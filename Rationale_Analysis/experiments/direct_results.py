@@ -162,14 +162,13 @@ def analyse_globality(values):
     values["rationale"] = values["rationale"].apply(lambda x: m[x])
 
     def compute_t_stat(x):
-        print(x)
         if "global" in x and len(x[x["global"] == "True"]) == len(x[x["global"] == "False"]["value"]):
             stat, pval = ttest_ind(
                 x[x["global"] == "True"]["value"], x[x["global"] == "False"]["value"], equal_var=False
             )
             diff = x[x["global"] == "True"]["value"].mean() - x[x["global"] == "False"]["value"].mean()
-            return pd.Series({"delta": diff, "stat": stat, "pval": pval})
-        return pd.Series({"delta": -1, "stat": -1, "pval": -1})
+            return {"delta": diff, "stat": stat, "pval": pval}
+        return {"delta": -1, "stat": -1, "pval": -1}
 
     values = values.groupby(["dataset", "saliency", "rationale"]).apply(compute_t_stat)
     print(values)
