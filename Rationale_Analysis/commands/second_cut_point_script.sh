@@ -1,0 +1,1 @@
+bash Rationale_Analysis/commands/model_a_train_script.sh
