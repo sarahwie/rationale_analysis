@@ -134,13 +134,17 @@ def main_ours(args):
     idx = values.groupby(["dataset", "saliency", "rationale", "extraction"])["value"].transform(max) == values["value"]
     print(values[idx])
 
-    values_g = values.groupby(["dataset", "saliency", "rationale", "extraction"]).agg(
-        lambda x: "{:0.2f}".format(np.median(x))
-        + " ("
-        + "{:0.2f}".format(np.min(x))
-        + "-"
-        + "{:0.2f}".format(np.max(x))
-        + ")"
+    values_g = (
+        values[values.rationale.apply(lambda x: "global" not in x)]
+        .groupby(["dataset", "saliency", "rationale", "extraction"])
+        .agg(
+            lambda x: "{:0.2f}".format(np.median(x))
+            + " ("
+            + "{:0.2f}".format(np.min(x))
+            + "-"
+            + "{:0.2f}".format(np.max(x))
+            + ")"
+        )
     )
 
     print(values_g)
@@ -163,9 +167,7 @@ def analyse_globality(values):
 
     def compute_t_stat(x):
         if "global" in x and len(x[x["global"] == True]) == len(x[x["global"] == False]["value"]):
-            stat, pval = ttest_ind(
-                x[x["global"] == True]["value"], x[x["global"] == False]["value"], equal_var=False
-            )
+            stat, pval = ttest_ind(x[x["global"] == True]["value"], x[x["global"] == False]["value"], equal_var=False)
             diff = x[x["global"] == True]["value"].mean() - x[x["global"] == False]["value"].mean()
             return pd.Series({"delta": diff, "stat": stat, "pval": pval})
         return pd.Series({"delta": -1, "stat": -1, "pval": -1})
