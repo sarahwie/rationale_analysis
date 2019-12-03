@@ -151,7 +151,7 @@ def main_ours(args):
     print(values_g["value"].unstack(level=0).to_latex())
 
     analyse_globality(values)
-
+    analyse_crf(values)
     return values
 
 
@@ -176,6 +176,22 @@ def analyse_globality(values):
     print(values)
     print(values.to_latex(float_format="{:0.4f}".format))
 
+def analyse_crf(values):
+    m = {"top_k": "top_k", "max_length": "contiguous", "global_top_k": "top_k", "global_contig": "contiguous"}
+
+    values = values[values.rationale.isin(['top_k', 'max_length'])]
+    values["rationale"] = values["rationale"].apply(lambda x: m[x])
+
+    def compute_t_stat(x):
+        if len(x[x["extraction"] == "crf"]) == len(x[x["extraction"] == "direct"]):
+            stat, pval = ttest_ind(x[x["extraction"] == "crf"]["value"], x[x["extraction"] == "direct"]["value"], equal_var=False)
+            diff = x[x["extraction"] == "crf"]["value"].mean() - x[x["extraction"] == "direct"]["value"].mean()
+            return pd.Series({"delta": diff, "stat": stat, "pval": pval})
+        return pd.Series({"delta": -1, "stat": -1, "pval": -1})
+
+    values = values.groupby(["dataset", "saliency", "rationale"]).apply(compute_t_stat)
+    print(values)
+    print(values.to_latex(float_format="{:0.4f}".format))
 
 if __name__ == "__main__":
     args = parser.parse_args()
