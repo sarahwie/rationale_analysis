@@ -161,6 +161,7 @@ def analyse_globality(values):
     values["global"] = values["rationale"].apply(lambda x: "global" in x)
     values["rationale"] = values["rationale"].apply(lambda x: m[x])
 
+    breakpoint()
     values = values.groupby(["dataset", "saliency", "rationale"]).apply(
         lambda x: ttest_ind(x[x["global"] == "True"]['value'], x[x["global"] == "False"]['value'], equal_var=False)
     )
