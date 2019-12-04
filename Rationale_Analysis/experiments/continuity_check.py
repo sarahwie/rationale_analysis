@@ -64,7 +64,7 @@ def main(args):
 
             assert j == len(rat), breakpoint()
 
-            crf_span_len.append(sum(crf_span_len) / spans)
+            crf_span_len.append(len(rat) / spans)
             crf_rat_len.append(len(rat) / len(document))
 
         values.append({
