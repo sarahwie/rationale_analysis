@@ -162,7 +162,7 @@ def results(args):
     plt.tight_layout()
     sns.despine()
     plt.xlabel("Cut Point")
-    plt.savefig(args.dataset + "-cut-point.pdf", bbox_inches="tight")
+    plt.savefig("cut-point.pdf", bbox_inches="tight")
 
 
 if __name__ == "__main__":
