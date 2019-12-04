@@ -11,7 +11,7 @@ parser.add_argument("--dataset")
 
 def main(args):
     datasets = [args.dataset]
-    saliency = ["wrapper", "simple_gradient"]
+    saliency = ["wrapper"]
     rationale = ["top_k", "max_length"]
 
     seeds = [1000, 2000, 3000, 4000, 5000]
