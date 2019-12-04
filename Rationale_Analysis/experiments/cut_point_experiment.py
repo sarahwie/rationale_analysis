@@ -50,6 +50,82 @@ def main(args):
         print(ith_search_space)
         subprocess.run(cmd, check=True, env=new_env)
 
+from itertools import product
+import pandas as pd
+import seaborn as sns
+import matplotlib
+
+# matplotlib.use('tkagg')
+import matplotlib.pyplot as plt
+import numpy as np
+
+def results(args):
+    names = ["Lei et al", "[CLS] Attention + Top K"]
+    output_dirs = [
+        os.path.join(
+            args.output_dir,
+            "bert_encoder_generator",
+            args.dataset,
+            "cut_point",
+            "EXP_NAME_HERE",
+            "top_k_rationale",
+            "direct",
+            "test_metrics.json",
+        ),
+        os.path.join(
+            args.output_dir,
+            "bert_classification",
+            args.dataset,
+            "learning_curve",
+            "EXP_NAME_HERE",
+            "wrapper_saliency",
+            "top_k_rationale",
+            "direct",
+            "model_b",
+            "metrics.json",
+        ),
+    ]
+
+    data = []
+    for name, output_dir in zip(names, output_dirs):
+        for prod in product(*values):
+            exp_dict = {"Model": name}
+            exp_name = []
+            for k, v in zip(keys, prod):
+                exp_name.append(k + "=" + str(v))
+                exp_dict[k] = v
+
+            try:
+                metrics = json.load(open(output_dir.replace("EXP_NAME_HERE", ":".join(exp_name))))
+                metrics = {
+                    k: v
+                    for k, v in metrics.items()
+                    if k.startswith("test_fscore")
+                    or k.startswith("test__fscore")
+                    or k.startswith("_fscore")
+                    or k.startswith("fscore")
+                }
+                m = np.mean(list(metrics.values()))
+                exp_dict["Macro F1"] = max(0, m)
+            except FileNotFoundError:
+                print(name, output_dir, exp_name)
+                continue
+
+            data.append(exp_dict)
+
+    sns.set(style="ticks", rc={"lines.linewidth": 0.7})
+    data = pd.DataFrame(data)
+    fig = plt.figure(figsize=(4, 3))
+    sns.pointplot(
+        x="KEEP_PROB", y="Macro F1", hue="Model", ci="sd", data=data, estimator=np.median, markers=["x"] * len(names)
+    )
+
+    plt.ylim(args.min_scale, args.max_scale)
+    plt.tight_layout()
+    sns.despine()
+    plt.xlabel("Training Set Size")
+    plt.savefig(args.dataset + "-comparison.pdf", bbox_inches="tight")
+
 if __name__ == "__main__":
     args = parser.parse_args()
     main(args)
