@@ -121,7 +121,7 @@ def results(args):
         ],
     ]
 
-    for cut, outputs_dirs in enumerate(output_dirs_point) :
+    for cut, output_dirs in enumerate(output_dirs_point) :
         for name, output_dir in zip(names, output_dirs):
             for seed in [1000, 2000, 3000, 4000, 5000]:
                 exp_dict = {"Model": name, "cut_point": cut}
