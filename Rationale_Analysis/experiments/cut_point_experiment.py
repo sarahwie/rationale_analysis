@@ -15,6 +15,11 @@ parser.add_argument("--run-one", dest="run_one", action="store_true")
 parser.add_argument("--cluster", dest="cluster", action="store_true")
 parser.add_argument("--all-data", dest="all_data", action="store_true")
 
+parser.add_argument("--output-dir", type=str)
+parser.add_argument("--dataset", type=str)
+parser.add_argument("--min-scale", type=float)
+parser.add_argument("--max-scale", type=float)
+
 def main(args):
     if args.all_data :
         datasets = default_values.keys()
@@ -66,7 +71,7 @@ def results(args):
             args.output_dir,
             "bert_encoder_generator",
             args.dataset,
-            "cut_point",
+            "direct",
             "EXP_NAME_HERE",
             "top_k_rationale",
             "direct",
@@ -88,10 +93,10 @@ def results(args):
 
     data = []
     for name, output_dir in zip(names, output_dirs):
-        for prod in product(*values):
-            exp_dict = {"Model": name}
+        for seed in [1000, 2000, 3000, 4000, 5000]:
+            exp_dict = {"Model": name, "cut_point" : 1}
             exp_name = []
-            for k, v in zip(keys, prod):
+            for k, v in zip(['RANDOM_SEED'], [seed]):
                 exp_name.append(k + "=" + str(v))
                 exp_dict[k] = v
 
@@ -117,15 +122,18 @@ def results(args):
     data = pd.DataFrame(data)
     fig = plt.figure(figsize=(4, 3))
     sns.pointplot(
-        x="KEEP_PROB", y="Macro F1", hue="Model", ci="sd", data=data, estimator=np.median, markers=["x"] * len(names)
+        x="cut_point", y="Macro F1", hue="Model", ci="sd", data=data, estimator=np.median, markers=["x"] * len(names)
     )
 
     plt.ylim(args.min_scale, args.max_scale)
     plt.tight_layout()
     sns.despine()
-    plt.xlabel("Training Set Size")
-    plt.savefig(args.dataset + "-comparison.pdf", bbox_inches="tight")
+    plt.xlabel("Cut Point")
+    plt.savefig(args.dataset + "-cut-point.pdf", bbox_inches="tight")
 
 if __name__ == "__main__":
     args = parser.parse_args()
-    main(args)
+    if args.script_type == "results":
+        results(args)
+    else:
+        main(args)
