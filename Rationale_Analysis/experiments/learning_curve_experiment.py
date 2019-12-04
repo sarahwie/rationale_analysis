@@ -76,7 +76,7 @@ def results(args):
             "learning_curve",
             "EXP_NAME_HERE",
             "top_k_rationale",
-            "MAX_LENGTH_PERCENT=20",
+            "direct",
             "test_metrics.json",
         ),
         os.path.join(
@@ -87,7 +87,7 @@ def results(args):
             "EXP_NAME_HERE",
             "wrapper_saliency",
             "top_k_rationale",
-            "MAX_LENGTH_PERCENT=20",
+            "direct",
             "model_b",
             "metrics.json",
         ),
