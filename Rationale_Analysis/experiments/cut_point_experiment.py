@@ -20,20 +20,21 @@ parser.add_argument("--dataset", type=str)
 parser.add_argument("--min-scale", type=float)
 parser.add_argument("--max-scale", type=float)
 
+
 def main(args):
-    if args.all_data :
+    if args.all_data:
         datasets = default_values.keys()
-    else :
+    else:
         datasets = [os.environ["DATASET_NAME"]]
 
-    for dataset in datasets :
+    for dataset in datasets:
         new_env = os.environ.copy()
-        new_env.update({k:str(v) for k, v in default_values[dataset].items()})
-        new_env['KEEP_PROB'] = str(1.0)
-        new_env['DATASET_NAME'] = dataset
+        new_env.update({k: str(v) for k, v in default_values[dataset].items()})
+        new_env["KEEP_PROB"] = str(1.0)
+        new_env["DATASET_NAME"] = dataset
 
         ith_search_space = {}
-        ith_search_space['RANDOM_SEED'] = [1000, 2000, 3000, 4000, 5000]
+        ith_search_space["RANDOM_SEED"] = [1000, 2000, 3000, 4000, 5000]
 
         cmd = (
             [
@@ -43,8 +44,8 @@ def main(args):
                 args.exp_name,
                 "--search-space",
                 json.dumps(ith_search_space),
-                "--script-type", 
-                args.script_type
+                "--script-type",
+                args.script_type,
             ]
             + (["--dry-run"] if args.dry_run else [])
             + (["--run-one"] if args.run_one else [])
@@ -55,6 +56,7 @@ def main(args):
         print(ith_search_space)
         subprocess.run(cmd, check=True, env=new_env)
 
+
 from itertools import product
 import pandas as pd
 import seaborn as sns
@@ -64,59 +66,87 @@ import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 
+
 def results(args):
+    data = []
     names = ["Lei et al", "[CLS] Attention + Top K"]
-    output_dirs = [
-        os.path.join(
-            args.output_dir,
-            "bert_encoder_generator",
-            args.dataset,
-            "direct",
-            "EXP_NAME_HERE",
-            "top_k_rationale",
-            "direct",
-            "test_metrics.json",
-        ),
-        os.path.join(
-            args.output_dir,
-            "bert_classification",
-            args.dataset,
-            "direct",
-            "EXP_NAME_HERE",
-            "wrapper_saliency",
-            "top_k_rationale",
-            "direct",
-            "model_b",
-            "metrics.json",
-        ),
+    output_dirs_point = [
+        [
+            os.path.join(
+                args.output_dir,
+                "bert_encoder_generator",
+                args.dataset,
+                "cut_point",
+                "EXP_NAME_HERE",
+                "top_k_rationale",
+                "direct",
+                "test_metrics.json",
+            ),
+            os.path.join(
+                args.output_dir,
+                "bert_classification",
+                args.dataset,
+                "direct",
+                "EXP_NAME_HERE",
+                "wrapper_saliency",
+                "top_k_rationale",
+                "second_cut_point",
+                "model_b",
+                "metrics.json",
+            ),
+        ],
+        [
+            os.path.join(
+                args.output_dir,
+                "bert_encoder_generator",
+                args.dataset,
+                "direct",
+                "EXP_NAME_HERE",
+                "top_k_rationale",
+                "direct",
+                "test_metrics.json",
+            ),
+            os.path.join(
+                args.output_dir,
+                "bert_classification",
+                args.dataset,
+                "direct",
+                "EXP_NAME_HERE",
+                "wrapper_saliency",
+                "top_k_rationale",
+                "direct",
+                "model_b",
+                "metrics.json",
+            ),
+        ],
     ]
 
-    data = []
-    for name, output_dir in zip(names, output_dirs):
-        for seed in [1000, 2000, 3000, 4000, 5000]:
-            exp_dict = {"Model": name, "cut_point" : 1}
-            exp_name = []
-            for k, v in zip(['RANDOM_SEED'], [seed]):
-                exp_name.append(k + "=" + str(v))
-                exp_dict[k] = v
+    for cut, outputs_dirs in enumerate(output_dirs_point) :
+        for name, output_dir in zip(names, output_dirs):
+            for seed in [1000, 2000, 3000, 4000, 5000]:
+                exp_dict = {"Model": name, "cut_point": cut}
+                exp_name = []
+                for k, v in zip(["RANDOM_SEED"], [seed]):
+                    exp_name.append(k + "=" + str(v))
+                    exp_dict[k] = v
 
-            try:
-                metrics = json.load(open(output_dir.replace("EXP_NAME_HERE", ":".join(exp_name))))
-                metrics = {
-                    k: v
-                    for k, v in metrics.items()
-                    if k.startswith("test_fscore")
-                    or k.startswith("test__fscore")
-                    or k.startswith("_fscore")
-                    or k.startswith("fscore")
-                }
-                m = np.mean(list(metrics.values()))
-                exp_dict["Macro F1"] = max(0, m)
-            except FileNotFoundError:
-                print(name, output_dir, exp_name)
-                continue
+                try:
+                    metrics = json.load(open(output_dir.replace("EXP_NAME_HERE", ":".join(exp_name))))
+                    metrics = {
+                        k: v
+                        for k, v in metrics.items()
+                        if k.startswith("test_fscore")
+                        or k.startswith("test__fscore")
+                        or k.startswith("_fscore")
+                        or k.startswith("fscore")
+                    }
+                    m = np.mean(list(metrics.values()))
+                    exp_dict["Macro F1"] = max(0, m)
+                except FileNotFoundError:
+                    print(name, output_dir, exp_name)
+                    continue
 
-            data.append(exp_dict)
+                data.append(exp_dict)
 
     sns.set(style="ticks", rc={"lines.linewidth": 0.7})
     data = pd.DataFrame(data)
@@ -130,6 +160,7 @@ def results(args):
     sns.despine()
     plt.xlabel("Cut Point")
     plt.savefig(args.dataset + "-cut-point.pdf", bbox_inches="tight")
+
 
 if __name__ == "__main__":
     args = parser.parse_args()
