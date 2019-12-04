@@ -157,7 +157,7 @@ def results(args):
     sns.catplot(
         x="cut_point", y="Macro F1", hue="Model", ci="sd", aspect=.4,
         data=data, estimator=np.median, markers=["o", "D"], kind='point', row="Dataset", 
-        legend_out=True, palette=['blue', 'red'], dodge=True, join=True
+        legend=False, palette=['blue', 'red'], dodge=True, join=True
     )
 
     plt.ylim(args.min_scale, args.max_scale)
