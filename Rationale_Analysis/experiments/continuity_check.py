@@ -32,9 +32,33 @@ def main(args):
         metrics_file_direct = os.path.join(path, "dev.jsonl")
         direct_rationales = [json.loads(line) for line in open(metrics_file_direct)]
         
-        direct_span_len = [sum([span['span'][1] - span['span'][0] 
-                     for span in doc['rationale']['spans']]) / len(doc['rationale']['spans'])
-                     for doc in direct_rationales]
+        direct_span_len = []
+        direct_rat_len = []
+
+        for doc in direct_rationales :
+            document = doc['metadata']['tokens']
+            rat = doc['rationale']['document'].split()
+            if len(rat) == 0 :
+                direct_span_len.append(0)
+                direct_rat_len.append(0)
+                continue
+
+            rat_tokens = [0]
+            spans = 0
+            j = 0
+            for i, t in enumerate(document) :
+                if j < len(rat) and t == rat[j] :
+                    if rat_tokens[-1] == 0 :
+                        spans += 1
+                    rat_tokens.append(1)
+                    j += 1
+                else :
+                    rat_tokens.append(0)
+
+            assert j == len(rat), breakpoint()
+
+            direct_span_len.append(len(rat) / spans)
+            direct_rat_len.append(len(rat) / len(document))
 
         metrics_file_direct = os.path.join(path, "bert_generator_saliency", "direct", "dev.jsonl")
         crf_rationales = [json.loads(line) for line in open(metrics_file_direct)]
@@ -74,7 +98,8 @@ def main(args):
             'seed' : seed,
             'crf_span_len' : np.mean(np.array(crf_span_len)),
             'direct_span_len' : np.mean(np.array(direct_span_len)),
-            "crf_len" : np.mean(crf_rat_len)
+            "crf_len" : np.mean(crf_rat_len),
+            "direct_len" : np.mean(direct_rat_len)
         })
 
     values = pd.DataFrame(values)
