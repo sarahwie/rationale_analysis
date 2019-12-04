@@ -155,13 +155,14 @@ def results(args):
     data = pd.DataFrame(data)
     fig = plt.figure(figsize=(4, 3))
     sns.catplot(
-        x="cut_point", y="Macro F1", hue="Model", ci="sd", col_wrap=3, aspect=.5,
-        data=data, estimator=np.median, markers=["o", "D"], kind='point', col="Dataset", 
+        x="cut_point", y="Macro F1", hue="Model", ci="sd", aspect=.3,
+        data=data, estimator=np.median, markers=["o", "D"], kind='point', row="Dataset", 
         legend_out=True, palette=['blue', 'red'], dodge=True, join=True
     )
 
     plt.ylim(args.min_scale, args.max_scale)
     plt.tight_layout()
+    plt.legend().remove()
     sns.despine()
     plt.xlabel("Cut Point")
     plt.savefig("cut-point.pdf", bbox_inches="tight")
