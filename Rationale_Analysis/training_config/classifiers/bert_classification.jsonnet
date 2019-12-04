@@ -89,7 +89,7 @@ local indexer = if is_movies then "bert-pretrained" else "bert-pretrained-simple
   },
   trainer: {
     num_epochs: std.extVar('EPOCHS'),
-    patience: 20,
+    patience: 10,
     grad_norm: 0.0,
     validation_metric: "+accuracy",
     num_serialized_models_to_keep: 1,
