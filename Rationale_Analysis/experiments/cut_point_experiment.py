@@ -81,7 +81,7 @@ def results(args):
             args.output_dir,
             "bert_classification",
             args.dataset,
-            "learning_curve",
+            "direct",
             "EXP_NAME_HERE",
             "wrapper_saliency",
             "top_k_rationale",
