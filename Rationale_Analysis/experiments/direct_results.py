@@ -134,6 +134,22 @@ def main_ours(args):
     idx = values.groupby(["dataset", "saliency", "rationale", "extraction"])["value"].transform(max) == values["value"]
     print(values[idx])
 
+    values_g = (
+        values
+        .groupby(["dataset", "saliency", "rationale", "extraction"])
+        .agg(
+            lambda x: "{:0.2f}".format(np.median(x))
+            + " ("
+            + "{:0.2f}".format(np.min(x))
+            + "-"
+            + "{:0.2f}".format(np.max(x))
+            + ")"
+        )
+    )
+
+    print(values_g)
+    breakpoint()
+
 
     values_g = (
         values[values.rationale.apply(lambda x: "global" not in x) & values.extraction.isin(['direct'])]
