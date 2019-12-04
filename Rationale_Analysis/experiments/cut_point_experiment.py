@@ -66,93 +66,96 @@ import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 
+datasets = ['SST', 'AGNews', 'Ev. Inf.', 'Movies', 'MultiRC']
+cut_point_thresh = [[0.1, 0.2], [0.1, 0.2], [0.05, 0.1], [0.15, 0.3], [0.1, 0.2]]
 
 def results(args):
     data = []
     names = ["Lei et al", "[CLS] Attention + Top K"]
-    output_dirs_point = [
-        [
-            os.path.join(
-                args.output_dir,
-                "bert_encoder_generator",
-                args.dataset,
-                "cut_point",
-                "EXP_NAME_HERE",
-                "top_k_rationale",
-                "direct",
-                "test_metrics.json",
-            ),
-            os.path.join(
-                args.output_dir,
-                "bert_classification",
-                args.dataset,
-                "direct",
-                "EXP_NAME_HERE",
-                "wrapper_saliency",
-                "top_k_rationale",
-                "second_cut_point",
-                "model_b",
-                "metrics.json",
-            ),
-        ],
-        [
-            os.path.join(
-                args.output_dir,
-                "bert_encoder_generator",
-                args.dataset,
-                "direct",
-                "EXP_NAME_HERE",
-                "top_k_rationale",
-                "direct",
-                "test_metrics.json",
-            ),
-            os.path.join(
-                args.output_dir,
-                "bert_classification",
-                args.dataset,
-                "direct",
-                "EXP_NAME_HERE",
-                "wrapper_saliency",
-                "top_k_rationale",
-                "direct",
-                "model_b",
-                "metrics.json",
-            ),
-        ],
-    ]
+    for c, dataset in enumerate(datasets) :
+        output_dirs_point = [
+            [
+                os.path.join(
+                    args.output_dir,
+                    "bert_encoder_generator",
+                    dataset,
+                    "cut_point",
+                    "EXP_NAME_HERE",
+                    "top_k_rationale",
+                    "direct",
+                    "test_metrics.json",
+                ),
+                os.path.join(
+                    args.output_dir,
+                    "bert_classification",
+                    dataset,
+                    "direct",
+                    "EXP_NAME_HERE",
+                    "wrapper_saliency",
+                    "top_k_rationale",
+                    "second_cut_point",
+                    "model_b",
+                    "metrics.json",
+                ),
+            ],
+            [
+                os.path.join(
+                    args.output_dir,
+                    "bert_encoder_generator",
+                    dataset,
+                    "direct",
+                    "EXP_NAME_HERE",
+                    "top_k_rationale",
+                    "direct",
+                    "test_metrics.json",
+                ),
+                os.path.join(
+                    args.output_dir,
+                    "bert_classification",
+                    dataset,
+                    "direct",
+                    "EXP_NAME_HERE",
+                    "wrapper_saliency",
+                    "top_k_rationale",
+                    "direct",
+                    "model_b",
+                    "metrics.json",
+                ),
+            ],
+        ]
 
-    for cut, output_dirs in enumerate(output_dirs_point) :
-        for name, output_dir in zip(names, output_dirs):
-            for seed in [1000, 2000, 3000, 4000, 5000]:
-                exp_dict = {"Model": name, "cut_point": cut}
-                exp_name = []
-                for k, v in zip(["RANDOM_SEED"], [seed]):
-                    exp_name.append(k + "=" + str(v))
-                    exp_dict[k] = v
+        for cut, output_dirs in enumerate(output_dirs_point) :
+            for name, output_dir in zip(names, output_dirs):
+                for seed in [1000, 2000, 3000, 4000, 5000]:
+                    exp_dict = {"Dataset":dataset, "Model": name, "cut_point": cut_point_thresh[c][cut]}
+                    exp_name = []
+                    for k, v in zip(["RANDOM_SEED"], [seed]):
+                        exp_name.append(k + "=" + str(v))
+                        exp_dict[k] = v
 
-                try:
-                    metrics = json.load(open(output_dir.replace("EXP_NAME_HERE", ":".join(exp_name))))
-                    metrics = {
-                        k: v
-                        for k, v in metrics.items()
-                        if k.startswith("test_fscore")
-                        or k.startswith("test__fscore")
-                        or k.startswith("_fscore")
-                        or k.startswith("fscore")
-                    }
-                    m = np.mean(list(metrics.values()))
-                    exp_dict["Macro F1"] = max(0, m)
-                except FileNotFoundError:
-                    print(name, output_dir, exp_name)
-                    continue
+                    try:
+                        metrics = json.load(open(output_dir.replace("EXP_NAME_HERE", ":".join(exp_name))))
+                        metrics = {
+                            k: v
+                            for k, v in metrics.items()
+                            if k.startswith("test_fscore")
+                            or k.startswith("test__fscore")
+                            or k.startswith("_fscore")
+                            or k.startswith("fscore")
+                        }
+                        m = np.mean(list(metrics.values()))
+                        exp_dict["Macro F1"] = max(0, m)
+                    except FileNotFoundError:
+                        print(name, output_dir, exp_name)
+                        continue
 
-                data.append(exp_dict)
+                    data.append(exp_dict)
 
     sns.set(style="ticks", rc={"lines.linewidth": 0.7})
     data = pd.DataFrame(data)
     fig = plt.figure(figsize=(4, 3))
-    sns.pointplot(
-        x="cut_point", y="Macro F1", hue="Model", ci="sd", data=data, estimator=np.median, markers=["x"] * len(names)
+    sns.catplot(
+        x="cut_point", y="Macro F1", hue="Model", ci="sd", data=data, estimator=np.median, markers=[], kind='point', col="Dataset"
     )
 
     plt.ylim(args.min_scale, args.max_scale)
