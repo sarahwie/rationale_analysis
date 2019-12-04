@@ -103,7 +103,7 @@ def main(args):
         })
 
     values = pd.DataFrame(values)
-    breakpoint()
+    print(values.groupby(['dataset', 'saliency', 'rationale']).agg(np.mean))
 
 if __name__ == '__main__' :
     args = parser.parse_args()
