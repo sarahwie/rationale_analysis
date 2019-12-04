@@ -17,9 +17,8 @@ parser.add_argument("--cluster", dest="cluster", action="store_true")
 parser.add_argument("--total-data", type=float, required=True)
 
 
-parser.add_argument("--output-dirs", type=str, nargs='+')
-parser.add_argument("--names", type=str, nargs='+')
-parser.add_argument("--metric", type=str, nargs='+')
+parser.add_argument("--output-dir", type=str, nargs='+')
+parser.add_argument("--dataset", type=str, nargs='+')
 
 exp_default = {'MU' : 0.0}
 
@@ -62,8 +61,16 @@ def results(args) :
     search_space['KEEP_PROB'] = [x/args.total_data for x in search_space['KEEP_PROB']]
     keys, values = zip(*search_space.items())
 
+    names = ['Lei et al', '[CLS] Attention + Top K']
+    output_dirs = [
+        args.output_dir + '/bert_encoder_generator/' + args.dataset + '/direct/EXP_NAME_HERE/top_k_rationale/test_metrics.json',
+        os.path.join(args.output_dir, 'bert_classification', 
+        args.dataset, 'direct', 'EXP_NAME_HERE', 
+        'wrapper_saliency', 'top_k_rationale', 'direct', 'model_b', 'metrics.json')
+    ]
+
     data = []
-    for name, output_dir, metric in zip(args.names, args.output_dirs, args.metric) :
+    for name, output_dir in zip(names, output_dirs) :
         for prod in product(*values):
             exp_dict = {'Model' : name}
             exp_name = []
@@ -94,7 +101,7 @@ def results(args) :
     plt.tight_layout()
     sns.despine()
     plt.xlabel("Training Set Size")
-    plt.savefig('AgNews-comparison.pdf', bbox_inches='tight')
+    plt.savefig(args.dataset + '-comparison.pdf', bbox_inches='tight')
 
 if __name__ == "__main__":
     args = parser.parse_args()
