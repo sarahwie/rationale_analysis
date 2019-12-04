@@ -73,11 +73,13 @@ def results(args) :
 
             try :
                 metrics = json.load(open(output_dir.replace('EXP_NAME_HERE', ":".join(exp_name))))
-                if 'test_' + metric in metrics :
-                    m = metrics['test_' + metric]
-                else :
-                    m = metrics[metric]
-                exp_dict[args.metric[-1]] = max(0, m)
+                metrics = {k:v for k, v in metrics.items() 
+                            if 
+                            k.startswith("test_fscore") or k.startswith("test__fscore")
+                            or k.startswith("_fscore") or k.startswith("fscore")
+                          }
+                m = np.mean(list(metrics.values()))
+                exp_dict["Macro F1"] = max(0, m)
             except FileNotFoundError:
                 print(exp_name)
                 continue
