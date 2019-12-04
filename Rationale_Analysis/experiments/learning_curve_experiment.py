@@ -63,7 +63,7 @@ def results(args) :
 
     names = ['Lei et al', '[CLS] Attention + Top K']
     output_dirs = [
-        os.paht.join(args.output_dir, 'bert_encoder_generator', args.dataset, 'learning_curve', 'EXP_NAME_HERE'
+        os.path.join(args.output_dir, 'bert_encoder_generator', args.dataset, 'learning_curve', 'EXP_NAME_HERE'
         , 'top_k_rationale', 'test_metrics.json'),
         os.path.join(args.output_dir, 'bert_classification', 
         args.dataset, 'learning_curve', 'EXP_NAME_HERE', 
