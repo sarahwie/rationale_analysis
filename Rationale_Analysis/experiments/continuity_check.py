@@ -40,11 +40,16 @@ def main(args):
         crf_rationales = [json.loads(line) for line in open(metrics_file_direct)]
 
         crf_span_len = []
+        crf_rat_len = []
+
         for doc in crf_rationales :
             document = doc['metadata']['tokens']
             rat = doc['rationale']['document'].split()
             if len(rat) == 0 :
-                breakpoint()
+                crf_span_len.append(0)
+                crf_rat_len.append(0)
+                continue
+
             rat_tokens = [0]
             spans = 0
             j = 0
@@ -60,15 +65,15 @@ def main(args):
             assert j == len(rat), breakpoint()
 
             crf_span_len.append(sum(crf_span_len) / spans)
-
-        breakpoint()
+            crf_rat_len.append(len(rat) / len(document))
 
         values.append({
             'dataset' : d,
             'saliency' : s,
             'rationale' : r,
             'seed' : seed,
-            'diff' : np.mean(np.array(crf_span_len) - np.array(direct_span_len))
+            'diff' : np.mean(np.array(crf_span_len) - np.array(direct_span_len)),
+            "crf_len" : np.mean(crf_rat_len)
         })
 
     values = pd.DataFrame(values)
