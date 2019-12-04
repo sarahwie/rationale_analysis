@@ -49,7 +49,7 @@ def main(args):
             spans = 0
             j = 0
             for i, t in enumerate(document) :
-                if t == rat[j] :
+                if j < len(rat) and t == rat[j] :
                     if rat_tokens[-1] == 0 :
                         spans += 1
                     rat_tokens.append(1)
