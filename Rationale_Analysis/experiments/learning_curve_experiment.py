@@ -88,7 +88,7 @@ def results(args) :
                 m = np.mean(list(metrics.values()))
                 exp_dict["Macro F1"] = max(0, m)
             except FileNotFoundError:
-                print(exp_name)
+                print(name, output_dir, exp_name)
                 continue
 
             data.append(exp_dict)
