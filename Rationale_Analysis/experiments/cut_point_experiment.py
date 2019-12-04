@@ -127,7 +127,7 @@ def results(args):
         for cut, output_dirs in enumerate(output_dirs_point) :
             for name, output_dir in zip(names, output_dirs):
                 for seed in [1000, 2000, 3000, 4000, 5000]:
-                    exp_dict = {"Dataset":dataset_name, "Model": name, "cut_point": cut_point_thresh[c][cut]}
+                    exp_dict = {"Dataset":dataset_name, "Model": name, "cut_point": str(cut_point_thresh[c][cut])}
                     exp_name = []
                     for k, v in zip(["RANDOM_SEED"], [seed]):
                         exp_name.append(k + "=" + str(v))
