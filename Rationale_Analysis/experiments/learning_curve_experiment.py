@@ -59,7 +59,7 @@ import numpy as np
 
 def results(args) :
     search_space['KEEP_PROB'] = [x/args.total_data for x in search_space['KEEP_PROB']]
-    keys, values = zip(*search_space.items())
+    keys, values = list(zip(*search_space.items()))
 
     names = ['Lei et al', '[CLS] Attention + Top K']
     output_dirs = [
