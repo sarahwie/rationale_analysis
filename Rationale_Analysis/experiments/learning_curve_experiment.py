@@ -96,7 +96,7 @@ def results(args) :
     sns.set(style="ticks", rc={"lines.linewidth": 0.7})
     data = pd.DataFrame(data)
     fig = plt.figure(figsize=(4, 3))
-    sns.pointplot(x='KEEP_PROB', y=args.metric[-1], hue='Model', ci='sd', data=data, estimator=np.median, markers=['x']*len(args.names))
+    sns.pointplot(x='KEEP_PROB', y='Macro F1', hue='Model', ci='sd', data=data, estimator=np.median, markers=['x']*len(args.names))
 
     plt.tight_layout()
     sns.despine()
