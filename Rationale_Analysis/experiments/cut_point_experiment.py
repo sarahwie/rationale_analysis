@@ -9,6 +9,7 @@ import argparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--script-type", type=str, required=True)
+parser.add_argument("--exp-name", type=str, required=True)
 parser.add_argument("--dry-run", dest="dry_run", action="store_true")
 parser.add_argument("--run-one", dest="run_one", action="store_true")
 parser.add_argument("--cluster", dest="cluster", action="store_true")
@@ -34,7 +35,7 @@ def main(args):
                 "python",
                 "Rationale_Analysis/experiments/model_a_experiments.py",
                 "--exp-name",
-                "cut_point",
+                args.exp_name,
                 "--search-space",
                 json.dumps(ith_search_space),
                 "--script-type", 
