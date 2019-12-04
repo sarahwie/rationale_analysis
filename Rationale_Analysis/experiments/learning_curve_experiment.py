@@ -1,7 +1,7 @@
 import subprocess
 import os
 
-search_space = {"KEEP_PROB": [0.005, 0.01], "RANDOM_SEED": [1000, 2000, 3000, 4000, 5000]}
+search_space = {"KEEP_PROB": [0.001, 0.01], "RANDOM_SEED": [1000, 2000, 3000, 4000, 5000]}
 
 import json
 
