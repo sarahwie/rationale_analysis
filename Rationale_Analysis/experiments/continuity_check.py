@@ -72,7 +72,8 @@ def main(args):
             'saliency' : s,
             'rationale' : r,
             'seed' : seed,
-            'diff' : np.mean(np.array(crf_span_len) - np.array(direct_span_len)),
+            'crf_span_len' : np.mean(np.array(crf_span_len)),
+            'direct_span_len' : np.mean(np.array(direct_span_len)),
             "crf_len" : np.mean(crf_rat_len)
         })
 
