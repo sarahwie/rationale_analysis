@@ -155,7 +155,7 @@ def results(args):
     data = pd.DataFrame(data)
     fig = plt.figure(figsize=(4, 3))
     sns.catplot(
-        x="cut_point", y="Macro F1", hue="Model", ci="sd", data=data, estimator=np.median, markers=[], kind='point', col="Dataset"
+        x="cut_point", y="Macro F1", hue="Model", ci="sd", data=data, estimator=np.median, markers=["o", "D"], kind='point', col="Dataset"
     )
 
     plt.ylim(args.min_scale, args.max_scale)
