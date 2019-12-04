@@ -17,8 +17,8 @@ parser.add_argument("--cluster", dest="cluster", action="store_true")
 parser.add_argument("--total-data", type=float, required=True)
 
 
-parser.add_argument("--output-dir", type=str, nargs='+')
-parser.add_argument("--dataset", type=str, nargs='+')
+parser.add_argument("--output-dir", type=str)
+parser.add_argument("--dataset", type=str)
 
 exp_default = {'MU' : 0.0}
 
