@@ -66,13 +66,14 @@ import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 
-datasets = {'SST':'SST', 'agnews':'AGNews', 'evinf':'Ev. Inf.', 'movies':'Movies', 'multirc':'MultiRC'}
+datasets = {"SST": "SST", "agnews": "AGNews", "evinf": "Ev. Inf.", "movies": "Movies", "multirc": "MultiRC"}
 cut_point_thresh = [[0.1, 0.2], [0.1, 0.2], [0.05, 0.1], [0.15, 0.3], [0.1, 0.2]]
+
 
 def results(args):
     data = []
     names = ["Lei et al", "[CLS] Attention + Top K"]
-    for c, (dataset, dataset_name) in enumerate(datasets.items()) :
+    for c, (dataset, dataset_name) in enumerate(datasets.items()):
         output_dirs_point = [
             [
                 os.path.join(
@@ -124,10 +125,10 @@ def results(args):
             ],
         ]
 
-        for cut, output_dirs in enumerate(output_dirs_point) :
+        for cut, output_dirs in enumerate(output_dirs_point):
             for name, output_dir in zip(names, output_dirs):
                 for seed in [1000, 2000, 3000, 4000, 5000]:
-                    exp_dict = {"Dataset":dataset_name, "Model": name, "cut_point": str(cut_point_thresh[c][cut])}
+                    exp_dict = {"Dataset": dataset_name, "Model": name, "cut_point": str(cut_point_thresh[c][cut])}
                     exp_name = []
                     for k, v in zip(["RANDOM_SEED"], [seed]):
                         exp_name.append(k + "=" + str(v))
@@ -155,9 +156,20 @@ def results(args):
     data = pd.DataFrame(data)
     fig = plt.figure(figsize=(4, 3))
     sns.catplot(
-        x="cut_point", y="Macro F1", hue="Model", ci="sd", aspect=.5,
-        data=data, estimator=np.median, markers=["o", "D"], kind='point', col="Dataset", 
-        legend=False, palette=['blue', 'red'], dodge=True, join=True
+        x="cut_point",
+        y="Macro F1",
+        hue="Model",
+        ci="sd",
+        aspect=0.5,
+        data=data,
+        estimator=np.median,
+        markers=["o", "D"],
+        kind="point",
+        col="Dataset",
+        legend=False,
+        palette=["blue", "red"],
+        dodge=True,
+        join=True,
     )
 
     plt.ylim(args.min_scale, args.max_scale)
