@@ -39,9 +39,12 @@ def main(args):
         metrics_file_direct = os.path.join(path, "bert_generator_saliency", "direct", "dev.jsonl")
         crf_rationales = [json.loads(line) for line in open(metrics_file_direct)]
         
-        crf_span_len = [sum([span['span'][1] - span['span'][0] 
+        try :
+            crf_span_len = [sum([span['span'][1] - span['span'][0] 
                      for span in doc['rationale']['spans']]) / len(doc['rationale']['spans'])
                      for doc in crf_rationales]
+        except :
+            breakpoint()
 
         values.append({
             'dataset' : d,
