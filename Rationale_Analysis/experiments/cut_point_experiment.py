@@ -155,8 +155,8 @@ def results(args):
     data = pd.DataFrame(data)
     fig = plt.figure(figsize=(4, 3))
     sns.catplot(
-        x="cut_point", y="Macro F1", hue="Model", ci="sd", aspect=.4,
-        data=data, estimator=np.median, markers=["o", "D"], kind='point', row="Dataset", 
+        x="cut_point", y="Macro F1", hue="Model", ci="sd", aspect=.5,
+        data=data, estimator=np.median, markers=["o", "D"], kind='point', col="Dataset", 
         legend=False, palette=['blue', 'red'], dodge=True, join=True
     )
 
