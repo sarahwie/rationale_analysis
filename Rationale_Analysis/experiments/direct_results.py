@@ -112,8 +112,8 @@ def main_ours(args):
                 }
             )
 
-        if r.startswith("global"):
-            continue
+        # if r.startswith("global"):
+        #     continue
 
         metrics_file_direct = os.path.join(path, "bert_generator_saliency", "direct", "model_b", "metrics.json")
         if os.path.isfile(metrics_file_direct):
