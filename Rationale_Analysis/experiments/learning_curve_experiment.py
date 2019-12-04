@@ -59,6 +59,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 def results(args) :
+    search_space['KEEP_PROB'] = [x/args.total_data for x in search_space['KEEP_PROB']]
     keys, values = zip(*search_space.items())
 
     data = []
@@ -91,7 +92,7 @@ def results(args) :
     plt.tight_layout()
     sns.despine()
     plt.xlabel("Training Set Size")
-    plt.savefig('SST-comparison.pdf', bbox_inches='tight')
+    plt.savefig('AgNews-comparison.pdf', bbox_inches='tight')
 
 if __name__ == "__main__":
     args = parser.parse_args()

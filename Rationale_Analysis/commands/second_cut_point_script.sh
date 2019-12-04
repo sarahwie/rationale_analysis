@@ -1,2 +1,2 @@
 CLASSIFIER=bert_encoder_generator bash Rationale_Analysis/commands/model_a_train_script.sh
-#CLASSIFIER=bert_classification bash Rationale_Analysis/commands/model_a_train_script.sh
+# CLASSIFIER=bert_classification bash Rationale_Analysis/commands/model_a_train_script.sh

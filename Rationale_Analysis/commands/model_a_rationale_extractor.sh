@@ -24,5 +24,5 @@ function rationale {
     fi;
 }
 
-rationale $RATIONALE_FOLDER_NAME/dev_metrics.json $DEV_DATA_PATH
+# rationale $RATIONALE_FOLDER_NAME/dev_metrics.json $DEV_DATA_PATH
 rationale $RATIONALE_FOLDER_NAME/test_metrics.json $TEST_DATA_PATH
