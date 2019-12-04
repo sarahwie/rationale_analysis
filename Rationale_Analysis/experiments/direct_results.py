@@ -138,11 +138,11 @@ def main_ours(args):
         values
         .groupby(["dataset", "saliency", "rationale", "extraction"])
         .agg(
-            lambda x: "{:0.2f}".format(np.median(x))
+            lambda x: "{:0.3f}".format(np.median(x))
             + " ("
-            + "{:0.2f}".format(np.min(x))
+            + "{:0.3f}".format(np.min(x))
             + "-"
-            + "{:0.2f}".format(np.max(x))
+            + "{:0.3f}".format(np.max(x))
             + ")"
         )
     )
