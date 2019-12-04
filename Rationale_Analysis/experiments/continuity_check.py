@@ -43,6 +43,8 @@ def main(args):
         for doc in crf_rationales :
             document = doc['metadata']['tokens']
             rat = doc['rationale']['document'].split()
+            if len(rat) == 0 :
+                breakpoint()
             rat_tokens = [0]
             spans = 0
             j = 0
