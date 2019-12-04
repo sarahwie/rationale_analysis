@@ -1,7 +1,7 @@
 import subprocess
 import os
 
-search_space = {"KEEP_PROB": [0.2, 0.4, 0.6, 0.8, 1.0], "RANDOM_SEED": [1000, 2000, 3000, 4000, 5000]}
+search_space = {"KEEP_PROB": [0.005, 0.01], "RANDOM_SEED": [1000, 2000, 3000, 4000, 5000]}
 
 import json
 
@@ -74,7 +74,7 @@ def results(args):
             "learning_curve",
             "EXP_NAME_HERE",
             "top_k_rationale",
-            "direct",
+            "MAX_LENGTH_PERCENT=20",
             "test_metrics.json",
         ),
         os.path.join(
@@ -85,7 +85,7 @@ def results(args):
             "EXP_NAME_HERE",
             "wrapper_saliency",
             "top_k_rationale",
-            "direct",
+            "MAX_LENGTH_PERCENT=20",
             "model_b",
             "metrics.json",
         ),
