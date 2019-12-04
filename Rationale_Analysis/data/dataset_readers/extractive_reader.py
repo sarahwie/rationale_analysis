@@ -90,8 +90,6 @@ class ExtractiveReader(DatasetReader):
         tokens.extend(word_tokens)
         keep_tokens.extend([0 for _ in range(len(word_tokens))])
 
-        rationale_tokens = rationale_tokens
-
         if query is not None:
             if self._bert:
                 query_tokens = self._tokenizer.tokenize(query)
