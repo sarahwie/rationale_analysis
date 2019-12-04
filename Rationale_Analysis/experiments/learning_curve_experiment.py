@@ -1,7 +1,7 @@
 import subprocess
 import os
 
-search_space = {"KEEP_PROB": [0.001, 0.01], "RANDOM_SEED": [1000, 2000, 3000, 4000, 5000]}
+search_space = {"KEEP_PROB": [0.2, 0.4, 0.6, 0.8, 1.0], "RANDOM_SEED": [1000, 2000, 3000, 4000, 5000]}
 
 import json
 
@@ -19,6 +19,8 @@ parser.add_argument("--total-data", type=float, required=True)
 
 parser.add_argument("--output-dir", type=str)
 parser.add_argument("--dataset", type=str)
+parser.add_argument("--min-scale", type=float)
+parser.add_argument("--max-scale", type=float)
 
 exp_default = {"MU": 0.0}
 
@@ -125,6 +127,7 @@ def results(args):
         x="KEEP_PROB", y="Macro F1", hue="Model", ci="sd", data=data, estimator=np.median, markers=["x"] * len(names)
     )
 
+    plt.ylim(args.min_scale, args.max_scale)
     plt.tight_layout()
     sns.despine()
     plt.xlabel("Training Set Size")
