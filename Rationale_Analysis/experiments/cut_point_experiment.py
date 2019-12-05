@@ -162,7 +162,7 @@ def results(args):
         x="Macro F1",
         hue="Model",
         ci="sd",
-        aspect=0.5,
+        aspect=2,
         data=data,
         estimator=np.median,
         markers=["o", "D"],
