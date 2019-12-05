@@ -103,7 +103,7 @@ def results(args):
                 exp_name = []
                 for k, v in zip(keys, prod):
                     exp_name.append(k + "=" + str(v))
-                    exp_dict[k] = v if k != 'KEEP_PROB' else v*total_data[c]
+                    exp_dict[k] = v if k != 'KEEP_PROB' else (v*total_data[c])
 
                 try:
                     metrics = json.load(open(output_dir.replace("EXP_NAME_HERE", ":".join(exp_name))))
@@ -122,8 +122,6 @@ def results(args):
                     exp_dict['Macro F1'] = 0.0
 
                 data.append(exp_dict)
-
-    breakpoint()
 
     sns.set_context("talk")
     sns.set(style="white", rc={"lines.linewidth": 1.7}, font_scale=1.5)
@@ -150,10 +148,13 @@ def results(args):
     for c, (_, n) in enumerate(datasets.items()) :
         thresh = total_data[c]
         ax.axes[0, c].set_xticklabels(labels=[x/thresh for x in [0.2, 0.4, 0.6, 0.8, 1.0]])
-        ax.axes[0, c].set_xlabel("")
+        if c > 0 :
+            ax.axes[0, c].set_xlabel("")
         ax.axes[0, c].set_title(n)
 
-    plt.xlim(args.min_scale, args.max_scale)
+    ax.axes[0, 0].set_xlabel("Training Set Proportion")
+
+    plt.ylim(args.min_scale, args.max_scale)
     plt.tight_layout()
     plt.legend().remove()
     sns.despine()
