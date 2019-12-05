@@ -174,8 +174,9 @@ def results(args):
 
     for c, _ in enumerate(datasets.items()) :
         thresh = cut_point_thresh[c]
-        ax[0, c].set_xticklabels(thresh)
-
+        ax.axes[0, c].set_xticklabels(thresh)
+        ax.axes[0, c].set_xlabel("")
+        
     plt.ylim(args.min_scale, args.max_scale)
     plt.tight_layout()
     plt.legend().remove()
