@@ -152,8 +152,9 @@ def results(args):
 
                     data.append(exp_dict)
 
-    sns.set(style="white", rc={"lines.linewidth": 1.0})
+    
     sns.set_context("talk")
+    sns.set(style="white", rc={"lines.linewidth": 1.7})
     data = pd.DataFrame(data)
     fig = plt.figure(figsize=(4, 3))
     ax = sns.catplot(
