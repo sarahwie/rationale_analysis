@@ -154,7 +154,7 @@ def results(args):
 
     
     sns.set_context("talk")
-    sns.set(style="white", rc={"lines.linewidth": 1.7}, font_scale=2.5)
+    sns.set(style="white", rc={"lines.linewidth": 1.7}, font_scale=1.5)
     data = pd.DataFrame(data)
     fig = plt.figure(figsize=(4, 3))
     ax = sns.catplot(
