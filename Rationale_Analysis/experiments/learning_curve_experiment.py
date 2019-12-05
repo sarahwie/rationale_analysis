@@ -67,6 +67,7 @@ total_data = [1.0, 2.5, 1.0]
 
 def results(args):
     names = ["Lei et al", "[CLS] Attention + Top K"]
+    data = []
     for c, (dataset, dataset_name) in enumerate(datasets.items()) :
         dataset_search_space = deepcopy(search_space)
         dataset_search_space["KEEP_PROB"] = [x / total_data[c] for x in dataset_search_space["KEEP_PROB"]]
@@ -96,7 +97,6 @@ def results(args):
             ),
         ]
 
-        data = []
         for name, output_dir in zip(names, output_dirs):
             for prod in product(*values):
                 exp_dict = {"Model": name, "Dataset": dataset_name}
@@ -117,11 +117,9 @@ def results(args):
                     }
                     m = np.mean(list(metrics.values()))
                     exp_dict["Macro F1"] = max(0, m)
-                    print("Found", name, output_dir, exp_name)
                 except FileNotFoundError as e:
-                    print(e)
                     print(name, output_dir, exp_name)
-                    continue
+                    exp_dict['Macro F1'] = 0.0
 
                 data.append(exp_dict)
 
@@ -146,8 +144,6 @@ def results(args):
         join=True,
         sharex=False,
     )
-
-    breakpoint()
 
     for c, (_, n) in enumerate(datasets.items()) :
         thresh = total_data[c]
