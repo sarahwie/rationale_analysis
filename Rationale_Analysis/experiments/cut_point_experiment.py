@@ -158,8 +158,8 @@ def results(args):
     data = pd.DataFrame(data)
     fig = plt.figure(figsize=(4, 3))
     ax = sns.catplot(
-        x="cut_point",
-        y="Macro F1",
+        y="cut_point",
+        x="Macro F1",
         hue="Model",
         ci="sd",
         aspect=0.5,
@@ -167,21 +167,21 @@ def results(args):
         estimator=np.median,
         markers=["o", "D"],
         kind="point",
-        col="Dataset",
+        row="Dataset",
         legend=False,
         palette=["blue", "red"],
         dodge=True,
         join=True,
-        sharex=False
+        sharey=False,
     )
 
     for c, (_, n) in enumerate(datasets.items()) :
         thresh = cut_point_thresh[c]
-        ax.axes[0, c].set_xticklabels(labels=[str(x) for x in thresh])
-        ax.axes[0, c].set_xlabel("")
-        ax.axes[0, c].set_title(n)
+        ax.axes[c, 0].set_yticklabels(labels=[str(x) for x in thresh])
+        ax.axes[c, 0].set_ylabel("")
+        ax.axes[c, 0].set_title(n)
 
-    plt.ylim(args.min_scale, args.max_scale)
+    plt.xlim(args.min_scale, args.max_scale)
     plt.tight_layout()
     plt.legend().remove()
     sns.despine()
