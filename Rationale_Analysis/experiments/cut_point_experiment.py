@@ -172,11 +172,13 @@ def results(args):
         join=True,
     )
 
+    breakpoint()
     for c, _ in enumerate(datasets.items()) :
         thresh = cut_point_thresh[c]
         ax.axes[0, c].set_xticklabels(labels=[str(x) for x in thresh])
         ax.axes[0, c].set_xlabel("")
 
+    breakpoint()
     plt.ylim(args.min_scale, args.max_scale)
     plt.tight_layout()
     plt.legend().remove()
