@@ -172,10 +172,9 @@ def results(args):
         join=True,
     )
 
-    breakpoint()
     for c, _ in enumerate(datasets.items()) :
         thresh = cut_point_thresh[c]
-        ax.axes[c].set_xticklabels(thresh)
+        ax.axes[c].set_xticklabels(labels=[str(x) for x in thresh])
         ax.axes[c].set_xlabel("")
 
     plt.ylim(args.min_scale, args.max_scale)
