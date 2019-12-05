@@ -62,7 +62,7 @@ import pandas as pd
 import seaborn as sns
 import matplotlib
 
-# matplotlib.use('tkagg')
+matplotlib.use('tkagg')
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -182,7 +182,8 @@ def results(args):
     plt.legend().remove()
     sns.despine()
     # plt.xlabel("Cut Point")
-    ax.savefig("cut-point.pdf", bbox_inches="tight")
+    plt.show()
+    # ax.savefig("cut-point.pdf", bbox_inches="tight")
 
 
 if __name__ == "__main__":
