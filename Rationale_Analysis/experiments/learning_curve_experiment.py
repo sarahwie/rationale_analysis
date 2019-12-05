@@ -18,7 +18,6 @@ parser.add_argument("--total-data", type=float, required=True)
 
 
 parser.add_argument("--output-dir", type=str)
-parser.add_argument("--dataset", type=str)
 parser.add_argument("--min-scale", type=float)
 parser.add_argument("--max-scale", type=float)
 
@@ -61,77 +60,102 @@ import matplotlib
 # matplotlib.use('tkagg')
 import matplotlib.pyplot as plt
 import numpy as np
+from copy import deepcopy
 
+datasets = {"SST": "SST", "agnews": "AGNews", "evinf": "Ev. Inf."}
+total_data = [1.0, 2.5, 1.0]
 
 def results(args):
-    search_space["KEEP_PROB"] = [x / args.total_data for x in search_space["KEEP_PROB"]]
-    keys, values = list(zip(*search_space.items()))
-
     names = ["Lei et al", "[CLS] Attention + Top K"]
-    output_dirs = [
-        os.path.join(
-            args.output_dir,
-            "bert_encoder_generator",
-            args.dataset,
-            "learning_curve",
-            "EXP_NAME_HERE",
-            "top_k_rationale",
-            "direct",
-            "test_metrics.json",
-        ),
-        os.path.join(
-            args.output_dir,
-            "bert_classification",
-            args.dataset,
-            "learning_curve",
-            "EXP_NAME_HERE",
-            "wrapper_saliency",
-            "top_k_rationale",
-            "direct",
-            "model_b",
-            "metrics.json",
-        ),
-    ]
+    for c, (dataset, dataset_name) in enumerate(datasets.items()) :
+        dataset_search_space = deepcopy(search_space)
+        dataset_search_space["KEEP_PROB"] = [x / total_data[c] for x in dataset_search_space["KEEP_PROB"]]
+        keys, values = list(zip(*dataset_search_space.items()))
+        output_dirs = [
+            os.path.join(
+                args.output_dir,
+                "bert_encoder_generator",
+                dataset,
+                "learning_curve",
+                "EXP_NAME_HERE",
+                "top_k_rationale",
+                "direct",
+                "test_metrics.json",
+            ),
+            os.path.join(
+                args.output_dir,
+                "bert_classification",
+                dataset,
+                "learning_curve",
+                "EXP_NAME_HERE",
+                "wrapper_saliency",
+                "top_k_rationale",
+                "direct",
+                "model_b",
+                "metrics.json",
+            ),
+        ]
 
-    data = []
-    for name, output_dir in zip(names, output_dirs):
-        for prod in product(*values):
-            exp_dict = {"Model": name}
-            exp_name = []
-            for k, v in zip(keys, prod):
-                exp_name.append(k + "=" + str(v))
-                exp_dict[k] = v
+        data = []
+        for name, output_dir in zip(names, output_dirs):
+            for prod in product(*values):
+                exp_dict = {"Model": name, "Dataset": dataset_name}
+                exp_name = []
+                for k, v in zip(keys, prod):
+                    exp_name.append(k + "=" + str(v))
+                    exp_dict[k] = v
 
-            try:
-                metrics = json.load(open(output_dir.replace("EXP_NAME_HERE", ":".join(exp_name))))
-                metrics = {
-                    k: v
-                    for k, v in metrics.items()
-                    if k.startswith("test_fscore")
-                    or k.startswith("test__fscore")
-                    or k.startswith("_fscore")
-                    or k.startswith("fscore")
-                }
-                m = np.mean(list(metrics.values()))
-                exp_dict["Macro F1"] = max(0, m)
-            except FileNotFoundError:
-                print(name, output_dir, exp_name)
-                continue
+                try:
+                    metrics = json.load(open(output_dir.replace("EXP_NAME_HERE", ":".join(exp_name))))
+                    metrics = {
+                        k: v
+                        for k, v in metrics.items()
+                        if k.startswith("test_fscore")
+                        or k.startswith("test__fscore")
+                        or k.startswith("_fscore")
+                        or k.startswith("fscore")
+                    }
+                    m = np.mean(list(metrics.values()))
+                    exp_dict["Macro F1"] = max(0, m)
+                except FileNotFoundError:
+                    print(name, output_dir, exp_name)
+                    continue
 
-            data.append(exp_dict)
+                data.append(exp_dict)
 
-    sns.set(style="ticks", rc={"lines.linewidth": 0.7})
+    sns.set_context("talk")
+    sns.set(style="white", rc={"lines.linewidth": 1.7}, font_scale=1.5)
     data = pd.DataFrame(data)
     fig = plt.figure(figsize=(4, 3))
-    sns.pointplot(
-        x="KEEP_PROB", y="Macro F1", hue="Model", ci="sd", data=data, estimator=np.median, markers=["x"] * len(names)
+    ax = sns.catplot(
+        y="Macro F1",
+        x="KEEP_PROB",
+        hue="Model",
+        ci="sd",
+        aspect=2,
+        data=data,
+        estimator=np.median,
+        markers=["o", "D"],
+        kind="point",
+        col="Dataset",
+        legend=False,
+        palette=["blue", "red"],
+        dodge=True,
+        join=True,
+        sharex=False,
     )
 
-    plt.ylim(args.min_scale, args.max_scale)
+    for c, (_, n) in enumerate(datasets.items()) :
+        thresh = total_data[c]
+        ax.axes[c, 0].set_xticklabels(labels=[x/thresh for x in [0.2, 0.4, 0.6, 0.8, 1.0]])
+        ax.axes[c, 0].set_xlabel("")
+        ax.axes[c, 0].set_title(n)
+
+    plt.xlim(args.min_scale, args.max_scale)
     plt.tight_layout()
+    plt.legend().remove()
     sns.despine()
-    plt.xlabel("Training Set Size")
-    plt.savefig(args.dataset + "-comparison.pdf", bbox_inches="tight")
+    plt.savefig("learning-curve.pdf", bbox_inches='tight')
 
 
 if __name__ == "__main__":
