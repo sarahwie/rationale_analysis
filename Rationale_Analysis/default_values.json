@@ -23,7 +23,7 @@
     "SST" : {
         "MAX_LENGTH_RATIO" : 0.2,
         "MAX_LENGTH_PERCENT" : 20,
-        "MU" : 0.0,
+        "MU" : 1.0,
         "LAMBDA" : 0.31,
         "BSIZE": 32
     },
