@@ -117,6 +117,7 @@ def results(args):
                     }
                     m = np.mean(list(metrics.values()))
                     exp_dict["Macro F1"] = max(0, m)
+                    print("Found", name, output_dir, exp_name)
                 except FileNotFoundError as e:
                     print(e)
                     print(name, output_dir, exp_name)
