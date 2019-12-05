@@ -103,7 +103,7 @@ def results(args):
                 exp_name = []
                 for k, v in zip(keys, prod):
                     exp_name.append(k + "=" + str(v))
-                    exp_dict[k] = v
+                    exp_dict[k] = v if k != 'KEEP_PROB' else v*total_data[c]
 
                 try:
                     metrics = json.load(open(output_dir.replace("EXP_NAME_HERE", ":".join(exp_name))))
