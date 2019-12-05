@@ -174,14 +174,14 @@ def results(args):
 
     for c, _ in enumerate(datasets.items()) :
         thresh = cut_point_thresh[c]
-        ax.axes[0, c].set_xticklabels(thresh)
-        ax.axes[0, c].set_xlabel("")
-        
+        ax.axes[c].set_xticklabels(thresh)
+        ax.axes[c].set_xlabel("")
+
     plt.ylim(args.min_scale, args.max_scale)
     plt.tight_layout()
     plt.legend().remove()
     sns.despine()
-    plt.xlabel("Cut Point")
+    # plt.xlabel("Cut Point")
     plt.savefig("cut-point.pdf", bbox_inches="tight")
 
 
