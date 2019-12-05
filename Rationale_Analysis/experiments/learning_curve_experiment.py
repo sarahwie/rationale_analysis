@@ -147,9 +147,9 @@ def results(args):
 
     for c, (_, n) in enumerate(datasets.items()) :
         thresh = total_data[c]
-        ax.axes[c, 0].set_xticklabels(labels=[x/thresh for x in [0.2, 0.4, 0.6, 0.8, 1.0]])
-        ax.axes[c, 0].set_xlabel("")
-        ax.axes[c, 0].set_title(n)
+        ax.axes[0, c].set_xticklabels(labels=[x/thresh for x in [0.2, 0.4, 0.6, 0.8, 1.0]])
+        ax.axes[0, c].set_xlabel("")
+        ax.axes[0, c].set_title(n)
 
     plt.xlim(args.min_scale, args.max_scale)
     plt.tight_layout()
