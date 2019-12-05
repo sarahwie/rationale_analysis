@@ -3,5 +3,5 @@ for rationale in top_k max_length;
     CLASSIFIER=bert_encoder_generator \
     RATIONALE=$rationale \
     RATIONALE_EXP_NAME=direct \
-    bash Rationale_Analysis/commands/model_a_rationale_extractor.sh;
+    bash Rationale_Analysis/commands/model_a_predict_script.sh;
     done;
