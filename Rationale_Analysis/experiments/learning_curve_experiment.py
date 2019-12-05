@@ -132,7 +132,7 @@ def results(args):
         x="KEEP_PROB",
         hue="Model",
         ci="sd",
-        aspect=2,
+        aspect=1,
         data=data,
         estimator=np.median,
         markers=["o", "D"],
