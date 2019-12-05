@@ -173,6 +173,7 @@ def results(args):
         dodge=True,
         join=True,
         sharey=False,
+        orient='v'
     )
 
     for c, (_, n) in enumerate(datasets.items()) :
@@ -185,7 +186,8 @@ def results(args):
     plt.tight_layout()
     plt.legend().remove()
     sns.despine()
-    ax.savefig("cut-point.pdf", bbox_inches="tight")
+    plt.show()
+    # ax.savefig("cut-point.pdf", bbox_inches="tight")
 
 
 if __name__ == "__main__":
