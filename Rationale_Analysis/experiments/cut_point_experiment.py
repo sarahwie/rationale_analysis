@@ -152,38 +152,39 @@ def results(args):
 
                     data.append(exp_dict)
 
-    sns.set(style="ticks", rc={"lines.linewidth": 1.8})
-    data = pd.DataFrame(data)
-    fig = plt.figure(figsize=(4, 3))
-    ax = sns.catplot(
-        x="cut_point",
-        y="Macro F1",
-        hue="Model",
-        ci="sd",
-        aspect=0.5,
-        data=data,
-        estimator=np.median,
-        markers=["o", "D"],
-        kind="point",
-        col="Dataset",
-        legend=False,
-        palette=["blue", "red"],
-        dodge=True,
-        join=True,
-        sharex=False
-    )
+    with sns.plotting_context("paper", rc={"lines.linewidth": 1.8}):
+        sns.set(style="ticks")
+        data = pd.DataFrame(data)
+        fig = plt.figure(figsize=(4, 3))
+        ax = sns.catplot(
+            x="cut_point",
+            y="Macro F1",
+            hue="Model",
+            ci="sd",
+            aspect=0.5,
+            data=data,
+            estimator=np.median,
+            markers=["o", "D"],
+            kind="point",
+            col="Dataset",
+            legend=False,
+            palette=["blue", "red"],
+            dodge=True,
+            join=True,
+            sharex=False
+        )
 
-    for c, (_, n) in enumerate(datasets.items()) :
-        thresh = cut_point_thresh[c]
-        ax.axes[0, c].set_xticklabels(labels=[str(x) for x in thresh])
-        ax.axes[0, c].set_xlabel("")
-        ax.axes[0, c].set_title(n)
+        for c, (_, n) in enumerate(datasets.items()) :
+            thresh = cut_point_thresh[c]
+            ax.axes[0, c].set_xticklabels(labels=[str(x) for x in thresh])
+            ax.axes[0, c].set_xlabel("")
+            ax.axes[0, c].set_title(n)
 
-    plt.ylim(args.min_scale, args.max_scale)
-    plt.tight_layout()
-    plt.legend().remove()
-    sns.despine()
-    ax.savefig("cut-point.pdf", bbox_inches="tight")
+        plt.ylim(args.min_scale, args.max_scale)
+        plt.tight_layout()
+        plt.legend().remove()
+        sns.despine()
+        ax.savefig("cut-point.pdf", bbox_inches="tight")
 
 
 if __name__ == "__main__":
