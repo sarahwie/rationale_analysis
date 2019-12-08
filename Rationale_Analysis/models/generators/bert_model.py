@@ -7,6 +7,7 @@ from allennlp.data.vocabulary import Vocabulary
 from allennlp.models.model import Model
 from allennlp.nn import InitializerApplicator, RegularizerApplicator, util
 from Rationale_Analysis.models.classifiers.base_model import RationaleBaseModel
+from allennlp.training.metrics import F1Measure
 
 from Rationale_Analysis.models.utils import generate_embeddings_for_pooling
 
@@ -19,6 +20,7 @@ class BertRationaleModel(RationaleBaseModel):
         bert_model: str,
         dropout: float = 0.0,
         requires_grad: str = "none",
+        pos_weight: float = 1.0,
         initializer: InitializerApplicator = InitializerApplicator(),
         regularizer: Optional[RegularizerApplicator] = None,
     ):
@@ -44,9 +46,12 @@ class BertRationaleModel(RationaleBaseModel):
             if n.startswith("classifier"):
                 v.requires_grad = True
 
+        self._pos_weight = 1.0 / pos_weight - 1
+        self._token_prf = F1Measure(1)
+
         initializer(self)
 
-    def forward(self, document) -> Dict[str, Any]:
+    def forward(self, document, rationale=None) -> Dict[str, Any]:
         input_ids = document["bert"]
         input_mask = (input_ids != 0).long()
         starting_offsets = document["bert-starting-offsets"]  # (B, T)
@@ -76,4 +81,23 @@ class BertRationaleModel(RationaleBaseModel):
         output_dict["predicted_rationale"] = predicted_rationale * mask
         output_dict["prob_z"] = probs * mask
 
+        if rationale is not None :
+            rat_mask = (rationale.sum(1) > 0)
+            if rat_mask.sum().long() == 0 :
+                output_dict['loss'] = 0.0
+            else :
+                weight = torch.Tensor([1.0, self._pos_weight]).to(logits.device)
+                loss = torch.nn.functional.cross_entropy(logits[rat_mask].transpose(1, 2), rationale[rat_mask], weight=weight)
+                output_dict['loss'] = loss
+                self._token_prf(logits[rat_mask], rationale[rat_mask], document["mask"][rat_mask])
+
+
         return output_dict
+
+    def get_metrics(self, reset: bool = False) -> Dict[str, float]:
+        try :
+            metrics = self._token_prf.get_metric(reset)
+        except :
+            metrics = {'_p' : 0, '_r' : 0, '_f1' : 0}
+            return metrics
+        return dict(zip(["_p", "_r", "_f1"], metrics))

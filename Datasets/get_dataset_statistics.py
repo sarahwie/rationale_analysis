@@ -1,80 +1,63 @@
 import pandas as pd
 import argparse
 import os
+import numpy as np
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--dataset", type=str, required=True)
+parser.add_argument("--all", dest="all", action="store_true")
 pd.set_option('display.max_colwidth', -1)
 
 
 
 def main(args):
     keys = ["train", "dev", "test"]
-    data = {k: None for k in keys}
-
-    latex_data = {k: {} for k in keys}
-
-    for k in keys:
+    dfs = []
+    for k in keys :
         df = pd.read_json(os.path.join(args.dataset, "data", k + ".jsonl"), lines=True)
-        document_length = df["document"].apply(lambda x: len(x.split()))
-        desc = document_length.describe()
-        data[k] = desc
+        df['split'] = k
+        dfs.append(df)
 
-        latex_data[k]["N"] = str(len(df))
-        latex_data[k]["Doc Length"] = str(int(desc["mean"].round(0))) + " / " + str(int(desc["max"]))
-        
+    dfs = pd.concat(dfs).reset_index(drop=True)
+    if 'annotation_id' in dfs.columns :
+        dfs = dfs.drop(columns=['annotation_id'])
+    dfs['document_length'] = dfs['document'].apply(lambda x : len(x.split()))
+    dfs = dfs.drop(columns=['document'])
+    if 'query' in dfs.columns :
+        dfs['query_length'] = dfs['query'].apply(lambda x : len(x.split()))
+        dfs = dfs.drop(columns=['query'])
+    else :
+        dfs['query_length'] = 0.0
 
-    print("Document Only Length")
-    print("=" * 20)
-    print(pd.DataFrame(data))
+    if 'rationale' in dfs.columns :
+        dfs['rationale_length'] = dfs["rationale"].apply(lambda x: sum([y[1] - y[0] for y in x])) / dfs['document_length']
+        dfs = dfs.drop(columns=['rationale'])
+    else :
+        dfs['rationale_length'] = 0.0
 
-    if "query" in df.columns:
-        for k in keys:
-            df = pd.read_json(os.path.join(args.dataset, "data", k + ".jsonl"), lines=True)
-            query_length = df["query"].apply(lambda x: len(x.split()))
-            desc = query_length.describe()
-            data[k] = desc
-            latex_data[k]["Query Length"] = str(int(desc["mean"].round(0))) + " / " + str(int(desc["max"]))
+    
+    def aggregate(rows) :
+        new_data = {}
+        for col in rows.columns :
+            if col.endswith("length") :
+                desc = np.median(rows[col].values)
+                new_data[col] = desc
 
-        print("Query Length")
-        print("=" * 20)
-        print(pd.DataFrame(data))
+            elif col == 'label':
+                label = rows[col].value_counts(normalize=True)[sorted(rows[col].unique())]
+                new_data[col] = " / ".join([str(x) for x in label.round(2).values])
+                new_data[col + '_'] = " / ".join([str(x) for x in label.round(2).index])
 
-    if "rationale" in df.columns:
-        for k in keys:
-            df = pd.read_json(os.path.join(args.dataset, "data", k + ".jsonl"), lines=True)
-            rationale_length = df["rationale"].apply(lambda x: sum([y[1] - y[0] for y in x]))
-            data[k] = rationale_length.describe()
+        new_data['N'] = len(rows)
 
-        print("Rationale Length Absolute")
-        print("=" * 20)
-        print(pd.DataFrame(data))
+        return pd.Series(new_data)
 
-        for k in keys:
-            df = pd.read_json(os.path.join(args.dataset, "data", k + ".jsonl"), lines=True)
-            rationale_length = df["rationale"].apply(lambda x: sum([y[1] - y[0] for y in x]))
-            document_length = df["document"].apply(lambda x: len(x.split()))
-            desc = (rationale_length / document_length).describe()
-            data[k] = desc
-            latex_data[k]["Rationale Length"] = str(desc['mean'].round(2)) + ' / ' + str(desc['max'].round(2))
-
-        print("Rationale Length Relative")
-        print("=" * 20)
-        print(pd.DataFrame(data))
-
-    if "label" in df.columns:
-        for k in keys:
-            df = pd.read_json(os.path.join(args.dataset, "data", k + ".jsonl"), lines=True)
-            data[k] = df["label"].value_counts() / len(df)
-
-            latex_data[k]["Label Dist"] = " / ".join([str(x) for x in data[k].round(2).values])
-
-        print("/".join([str(x) for x in data[k].index]))
-        print("Label Distribution")
-        print("=" * 20)
-        print(pd.DataFrame(data))
-
-    print(pd.DataFrame(latex_data).T.to_latex())
+    agg = aggregate(dfs)
+    print(agg)
+    agg.name = args.dataset
+    agg = pd.DataFrame(agg).T
+    agg = agg.drop(columns=['label_'])
+    print(agg.to_latex())
 
 
 if __name__ == "__main__":
