@@ -9,7 +9,7 @@ export TEST_DATA_PATH="${DATASET_FOLDER}/${DATASET_NAME}/data/test.jsonl;${OUTPU
 export OUTPUT_BASE_PATH=${OUTPUT_BASE_PATH:-outputs}/bert_generator_human/no_crf_${HUMAN_PROB}
 
 export SEED=${RANDOM_SEED:-100}
-export EPOCHS=${EPOCHS:-2}
+export EPOCHS=${EPOCHS:-20}
 
 
 if [[ -f "${OUTPUT_BASE_PATH}/metrics.json" ]]; then

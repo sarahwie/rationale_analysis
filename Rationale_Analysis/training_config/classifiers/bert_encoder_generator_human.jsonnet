@@ -128,8 +128,8 @@ local indexer = if is_movies then "bert-pretrained" else "bert-pretrained-simple
     batch_size : std.extVar('BSIZE')
   },
   trainer: {
-    num_epochs: std.extVar('EPOCHS'),
-    patience: 20,
+    num_epochs: 20,
+    patience: 10,
     grad_norm: 5.0,
     validation_metric: "+reg_accuracy",
     num_serialized_models_to_keep: 1,
