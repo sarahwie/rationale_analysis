@@ -119,7 +119,7 @@ def results(args):
                     exp_dict["Macro F1"] = max(0, m)
                 except FileNotFoundError as e:
                     print(name, output_dir, exp_name)
-                    exp_dict['Macro F1'] = 0.0
+                    # exp_dict['Macro F1'] = 0.0
 
                 data.append(exp_dict)
 
