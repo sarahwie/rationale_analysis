@@ -115,11 +115,12 @@ def results(args):
                     }
                     m = np.mean(list(metrics.values()))
                     exp_dict["Macro F1"] = max(0, m)
+                    data.append(exp_dict)
                 except FileNotFoundError as e:
-                    print(name, output_dir, exp_dict)
-                    exp_dict['Macro F1'] = 0.0
-
-                data.append(exp_dict)
+                    print(name, output_dir(hp, seed), exp_dict)
+                    print(e)
+                    # exp_dict['Macro F1'] = 0.0
+                
 
     sns.set_context("talk")
     sns.set(style="white", rc={"lines.linewidth": 1.7}, font_scale=1.5)
