@@ -65,51 +65,46 @@ import matplotlib.pyplot as plt
 import numpy as np
 from copy import deepcopy
 
-datasets = {"SST": "SST", "agnews": "AGNews", "evinf": "Ev. Inf."}
-total_data = [1.0, 2.5, 1.0]
+datasets = {"evinf": "Ev. Inf."}
+lengths = [0.2, 0.5, 1.0]
 
 def results(args):
     names = ["Lei et al", "[CLS] Attention + Top K"]
     data = []
     for c, (dataset, dataset_name) in enumerate(datasets.items()) :
-        dataset_search_space = deepcopy(search_space)
-        dataset_search_space["KEEP_PROB"] = [x / total_data[c] for x in dataset_search_space["KEEP_PROB"]]
-        keys, values = list(zip(*dataset_search_space.items()))
         output_dirs = [
-            os.path.join(
+            lambda hp, seed : os.path.join(
                 args.output_dir,
                 "bert_encoder_generator",
                 dataset,
-                "learning_curve",
-                "EXP_NAME_HERE",
+                "human/HUMAN_PROB="+str(hp) + ':RANDOM_SEED=' + str(seed),
                 "top_k_rationale",
                 "direct",
                 "test_metrics.json",
             ),
-            os.path.join(
+            lambda hp, seed: os.path.join(
                 args.output_dir,
                 "bert_classification",
                 dataset,
-                "learning_curve",
-                "EXP_NAME_HERE",
+                "direct",
+                "RANDOM_SEED="+str(seed),
                 "wrapper_saliency",
                 "top_k_rationale",
-                "direct",
+                "human",
+                "bert_generator_human",
+                "no_crf_" + str(hp),
                 "model_b",
                 "metrics.json",
             ),
         ]
 
         for name, output_dir in zip(names, output_dirs):
-            for prod in product(*values):
-                exp_dict = {"Model": name, "Dataset": dataset_name}
-                exp_name = []
-                for k, v in zip(keys, prod):
-                    exp_name.append(k + "=" + str(v))
-                    exp_dict[k] = v if k != 'KEEP_PROB' else (v*total_data[c])
+            for hp in search_space['HUMAN_PROB'] :
+                for seed in search_space['RANDOM_SEED'] :
+                    exp_dict = {"Model": name, "Dataset": dataset_name, "HUMAN_PROB": hp, 'seed': seed}
 
                 try:
-                    metrics = json.load(open(output_dir.replace("EXP_NAME_HERE", ":".join(exp_name))))
+                    metrics = json.load(open(output_dir(hp, seed)))
                     metrics = {
                         k: v
                         for k, v in metrics.items()
@@ -121,7 +116,7 @@ def results(args):
                     m = np.mean(list(metrics.values()))
                     exp_dict["Macro F1"] = max(0, m)
                 except FileNotFoundError as e:
-                    print(name, output_dir, exp_name)
+                    print(name, output_dir, exp_dict)
                     exp_dict['Macro F1'] = 0.0
 
                 data.append(exp_dict)
@@ -132,7 +127,7 @@ def results(args):
     fig = plt.figure(figsize=(4, 3))
     ax = sns.catplot(
         y="Macro F1",
-        x="KEEP_PROB",
+        x="HUMAN_PROB",
         hue="Model",
         ci="sd",
         aspect=1,
@@ -149,19 +144,19 @@ def results(args):
     )
 
     for c, (_, n) in enumerate(datasets.items()) :
-        thresh = total_data[c]
-        ax.axes[0, c].set_xticklabels(labels=[x/thresh for x in [0.2, 0.4, 0.6, 0.8, 1.0]])
-        if c > 0 :
-            ax.axes[0, c].set_xlabel("")
+        # thresh = total_data[c]
+        # ax.axes[0, c].set_xticklabels(labels=[x/thresh for x in [0.2, 0.4, 0.6, 0.8, 1.0]])
+        # if c > 0 :
+        #     ax.axes[0, c].set_xlabel("")
         ax.axes[0, c].set_title(n)
 
-    ax.axes[0, 0].set_xlabel("Training Set Proportion")
+    ax.axes[0, 0].set_xlabel("Human Rationale Proportion")
 
     plt.ylim(args.min_scale, args.max_scale)
     plt.tight_layout()
     plt.legend().remove()
     sns.despine()
-    plt.savefig("learning-curve.pdf", bbox_inches='tight')
+    plt.savefig("human_sup.pdf", bbox_inches='tight')
 
 
 if __name__ == "__main__":
