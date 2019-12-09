@@ -75,7 +75,7 @@ def results(args):
         output_dirs = [
             lambda hp, seed : os.path.join(
                 args.output_dir,
-                "bert_encoder_generator",
+                "bert_encoder_generator_human",
                 dataset,
                 "human/HUMAN_PROB="+str(hp) + ':RANDOM_SEED=' + str(seed),
                 "top_k_rationale",
@@ -158,6 +158,8 @@ def results(args):
     plt.legend().remove()
     sns.despine()
     plt.savefig("human_sup.pdf", bbox_inches='tight')
+
+    breakpoint()
 
 
 if __name__ == "__main__":
