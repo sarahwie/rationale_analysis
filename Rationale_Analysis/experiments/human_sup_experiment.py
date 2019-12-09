@@ -103,23 +103,23 @@ def results(args):
                 for seed in search_space['RANDOM_SEED'] :
                     exp_dict = {"Model": name, "Dataset": dataset_name, "HUMAN_PROB": hp, 'seed': seed}
 
-                try:
-                    metrics = json.load(open(output_dir(hp, seed)))
-                    metrics = {
-                        k: v
-                        for k, v in metrics.items()
-                        if k.startswith("test_fscore")
-                        or k.startswith("test__fscore")
-                        or k.startswith("_fscore")
-                        or k.startswith("fscore")
-                    }
-                    m = np.mean(list(metrics.values()))
-                    exp_dict["Macro F1"] = max(0, m)
-                    data.append(exp_dict)
-                except FileNotFoundError as e:
-                    print(name, output_dir(hp, seed), exp_dict)
-                    print(e)
-                    # exp_dict['Macro F1'] = 0.0
+                    try:
+                        metrics = json.load(open(output_dir(hp, seed)))
+                        metrics = {
+                            k: v
+                            for k, v in metrics.items()
+                            if k.startswith("test_fscore")
+                            or k.startswith("test__fscore")
+                            or k.startswith("_fscore")
+                            or k.startswith("fscore")
+                        }
+                        m = np.mean(list(metrics.values()))
+                        exp_dict["Macro F1"] = max(0, m)
+                        data.append(exp_dict)
+                    except FileNotFoundError as e:
+                        print(name, output_dir(hp, seed), exp_dict)
+                        print(e)
+                        # exp_dict['Macro F1'] = 0.0
                 
 
     sns.set_context("talk")
