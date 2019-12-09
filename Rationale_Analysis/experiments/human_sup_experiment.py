@@ -117,7 +117,8 @@ def results(args):
                     exp_dict["Macro F1"] = max(0, m)
                     data.append(exp_dict)
                 except FileNotFoundError as e:
-                    print(name, output_dir, exp_dict)
+                    print(name, output_dir(hp, seed), exp_dict)
+                    print(e)
                     # exp_dict['Macro F1'] = 0.0
                 
 
