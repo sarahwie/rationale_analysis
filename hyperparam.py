@@ -12,7 +12,8 @@ import matplotlib.pyplot as plt
 data = []
 for d, s in product(datasets, search) :
     try :
-        metrics = json.load(open(os.path.join(d, 'mu_lambda_search', str(s), 'metrics.json')))
+        metrics = json.load(open(os.path.join('/scratch/jain.sar/Rationale_Analysis/outputs/bert_encoder_generator', 
+        d, 'mu_lambda_search', str(s), 'metrics.json')))
         f1 = {k: v for k, v in metrics.items() if k.startswith("test_fscore") or k.startswith("test__fscore")}
         data.append({'dataset' : d, 'seed' : s,
             'time' : metrics['training_duration'], 'rat' : metrics['test__rat_length'], 'acc' : np.mean(list(f1.values()))
