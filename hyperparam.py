@@ -38,3 +38,4 @@ def plot(dataset) :
 
 for d in datasets :
     plot(d)
+    plt.show()
