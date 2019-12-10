@@ -30,6 +30,7 @@ def rand_jitter(arr):
 
 
 def plot(dataset) :
+    fig = plt.figure()
     plt.scatter(rand_jitter(data[data.dataset == dataset]['rat']), rand_jitter(data[data.dataset == dataset]['acc']), s=5)
     plt.xlabel('Average Rationale Length')
     plt.ylabel('Model Performance')
