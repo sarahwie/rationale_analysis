@@ -34,3 +34,6 @@ def plot(dataset) :
     plt.ylabel('Model Performance')
     plt.title(dataset.title())
     plt.savefig('/home/jain.sar/' + dataset + '.pdf')
+
+for d in datasets :
+    plot(d)
