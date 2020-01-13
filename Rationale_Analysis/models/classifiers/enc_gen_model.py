@@ -12,6 +12,7 @@ from Rationale_Analysis.models.classifiers.base_model import RationaleBaseModel
 from allennlp.data.dataset import Batch
 
 from allennlp.training.metrics import Average
+
 # from Rationale_Analysis.models.rationale_extractors.base_rationale_extractor import RationaleExtractor
 
 
@@ -36,10 +37,10 @@ class EncoderGeneratorModel(RationaleBaseModel):
         self._num_labels = self._vocabulary.get_vocab_size("labels")
 
         self._generator = Model.from_params(
-            vocab=vocab, regularizer=regularizer, initializer=initializer, params=Params(generator)
+            vocab=vocab, regularizer=regularizer, initializer=initializer, params=Params(generator),
         )
         self._encoder = Model.from_params(
-            vocab=vocab, regularizer=regularizer, initializer=initializer, params=Params(encoder)
+            vocab=vocab, regularizer=regularizer, initializer=initializer, params=Params(encoder),
         )
 
         self._samples = samples
@@ -50,7 +51,7 @@ class EncoderGeneratorModel(RationaleBaseModel):
 
         self._loss_tracks = {
             k: Average()
-            for k in ["_lasso_loss", "_base_loss", "_rat_length", "_fused_lasso_loss", "_average_span_length"]
+            for k in ["_lasso_loss", "_base_loss", "_rat_length", "_fused_lasso_loss", "_average_span_length",]
         }
 
         initializer(self)
@@ -67,26 +68,22 @@ class EncoderGeneratorModel(RationaleBaseModel):
 
         sampler = D.bernoulli.Bernoulli(probs=prob_z)
         if self.prediction_mode or not self.training:
-            if self._rationale_extractor is None :
-                sample_z = generator_dict['predicted_rationale'].float()
-            else :
+            if self._rationale_extractor is None:
+                sample_z = generator_dict["predicted_rationale"].float()
+            else:
                 sample_z = self._rationale_extractor.extract_rationale(prob_z, metadata, as_one_hot=True)
-                output_dict["rationale"] = self._rationale_extractor.extract_rationale(prob_z, metadata, as_one_hot=False)
+                output_dict["rationale"] = self._rationale_extractor.extract_rationale(
+                    prob_z, metadata, as_one_hot=False
+                )
                 sample_z = torch.Tensor(sample_z).to(prob_z.device).float()
         else:
             sample_z = sampler.sample()
 
         sample_z = sample_z * mask
         reduced_document = self.regenerate_tokens(metadata, sample_z)
-        encoder_dict = self._encoder(
-            document=reduced_document,
-            query=query,
-            label=label,
-            metadata=metadata,
-        )
+        encoder_dict = self._encoder(document=reduced_document, query=query, label=label, metadata=metadata,)
 
         loss = 0.0
-        
 
         if label is not None:
             assert "loss" in encoder_dict
@@ -144,13 +141,13 @@ class EncoderGeneratorModel(RationaleBaseModel):
     def regenerate_tokens(self, metadata, sample_z):
         sample_z_cpu = sample_z.cpu().data.numpy()
         tokens = [m["tokens"] for m in metadata]
-        keep_tokens = [m['keep_tokens'] for m in metadata]
+        keep_tokens = [m["keep_tokens"] for m in metadata]
 
         assert len(tokens) == len(sample_z_cpu)
         instances = []
         for words, mask, keep in zip(tokens, sample_z_cpu, keep_tokens):
             mask = mask[: len(words)]
-            new_words = [w for i, (w, m, k) in enumerate(zip(words, mask, keep)) if i == 0 or m == 1]# or k == 1]
+            new_words = [w for i, (w, m, k) in enumerate(zip(words, mask, keep)) if i == 0 or m == 1]  # or k == 1]
 
             instance = metadata[0]["convert_tokens_to_instance"](new_words)
             instances.append(instance)
