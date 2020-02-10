@@ -1,10 +1,10 @@
 local is_movies = if std.findSubstr('movies', std.extVar('TRAIN_DATA_PATH')) == [] then false else true;
 
 local bert_model = {
-  type: "bert_rationale_model",
-  bert_model: 'bert-base-uncased',
-  requires_grad: 'pooler,11,10,9',
-  dropout : 0.2,
+  type: "bert_classifier",
+  bert_model: 'bert-base-cased',
+  requires_grad: 'all',
+  dropout : 0.1,
 };
 
 local simple_model = {
@@ -17,7 +17,7 @@ local simple_model = {
     token_embedders: {
       bert: {
         type: "bert-pretrained",
-        pretrained_model: 'bert-base-uncased',
+        pretrained_model: 'bert-base-cased',
         requires_grad: '11,10,pooler',
       },
     },
@@ -44,37 +44,25 @@ local simple_model = {
   },
 };
 
-local indexer = if is_movies then "bert-pretrained" else "bert-pretrained-simple";
+local indexer = if is_movies then "bert-pretrained" else "pretrained-simple";
 
 {
   dataset_reader : {
-    type : "rationale_reader",
-    tokenizer: {
-       word_splitter: "bert-basic"
-    },
+    type : "base_reader",
     token_indexers : {
       bert : {
         type : indexer,
-        pretrained_model : "bert-base-uncased",
-        use_starting_offsets: true,
-        do_lowercase : true,
-        truncate_long_sequences: false
+        model_name : "bert-base-cased",
       },
     },
     keep_prob: std.extVar('KEEP_PROB')
   },
   validation_dataset_reader: {
-    type : "rationale_reader",
-    tokenizer: {
-       word_splitter: "bert-basic"
-    },
+    type : "base_reader",
     token_indexers : {
       bert : {
         type : indexer,
-        pretrained_model : "bert-base-uncased",
-        use_starting_offsets: true,
-        do_lowercase : true,
-        truncate_long_sequences: false
+        model_name : "bert-base-cased",
       },
     },
   },
@@ -83,19 +71,19 @@ local indexer = if is_movies then "bert-pretrained" else "bert-pretrained-simple
   test_data_path: std.extVar('TEST_DATA_PATH'),
   model: if is_movies then simple_model else bert_model,
   iterator: {
-    type: "bucket",
-    sorting_keys: [["document", "num_tokens"]],
+    type: "basic",
+    // sorting_keys: [["document", "num_tokens"]],
     batch_size : std.extVar('BSIZE')
   },
   trainer: {
     num_epochs: 20,
     patience: 10,
     grad_norm: 0.0,
-    validation_metric: "+accuracy",
+    validation_metric: "+validation_metric",
     num_serialized_models_to_keep: 1,
     cuda_device: std.extVar("CUDA_DEVICE"),
     optimizer: {
-      type: "adam",
+      type: "adamw",
       lr: 2e-5
     }
   },

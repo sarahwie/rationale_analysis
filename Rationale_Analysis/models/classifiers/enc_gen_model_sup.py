@@ -12,8 +12,6 @@ from Rationale_Analysis.models.classifiers.base_model import RationaleBaseModel
 from allennlp.data.dataset import Batch
 
 from allennlp.training.metrics import Average
-# from Rationale_Analysis.models.rationale_extractors.base_rationale_extractor import RationaleExtractor
-
 
 @Model.register("encoder_generator_human_model")
 class EncoderGeneratorModel(RationaleBaseModel):

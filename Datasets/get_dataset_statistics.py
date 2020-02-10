@@ -41,6 +41,7 @@ def main(args):
         for col in rows.columns :
             if col.endswith("length") :
                 desc = np.median(rows[col].values)
+                print(col, np.max(rows[col].values))
                 new_data[col] = desc
 
             elif col == 'label':

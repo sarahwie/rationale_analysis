@@ -2,7 +2,7 @@ from typing import Optional, Dict, Any
 
 import torch
 import torch.nn.functional as F
-from pytorch_transformers import BertModel
+from transformers import BertModel
 
 from allennlp.data.vocabulary import Vocabulary
 from allennlp.models.model import Model
