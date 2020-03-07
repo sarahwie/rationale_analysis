@@ -51,6 +51,7 @@ class RationaleBaseModel(Model):
 
     def get_metrics(self, reset: bool = False) -> Dict[str, float]:
         metrics = self._f1_metric.get_metric(reset)
+        macro_avg = {'macro_' + k: sum(v) / len(v) for k, v in metrics.items()}
         output_labels = self._vocabulary.get_index_to_token_vocabulary("labels")
         output_labels = [output_labels[i] for i in range(len(output_labels))]
 
@@ -61,15 +62,16 @@ class RationaleBaseModel(Model):
             class_metrics.update({k + "_" + str(kc): x for kc, x in class_nums.items()})
 
         class_metrics.update({"accuracy": self._accuracy.get_metric(reset)})
+        class_metrics.update(macro_avg)
         modified_class_metrics = {}
 
         for k, v in class_metrics.items():
-            if k.endswith("_1") or k == "accuracy":
+            if k in ["accuracy", "macro_fscore"]:
                 modified_class_metrics[k] = v
             else:
                 modified_class_metrics["_" + k] = v
 
-        modified_class_metrics["validation_metric"] = class_metrics["accuracy"]
+        modified_class_metrics["validation_metric"] = class_metrics["macro_fscore"]
 
         return modified_class_metrics
 
@@ -85,7 +87,7 @@ class RationaleBaseModel(Model):
         reader = document[0]["reader_object"]
         device = next(self.parameters()).device
         return {
-            k: {x: y.to(device) for x, y in v.items()}
+            k: ({x: y.to(device) for x, y in v.items()} if type(v) == dict else v.to(device))
             for k, v in reader.combine_document_query(document, query, self._vocabulary).items()
         }
 

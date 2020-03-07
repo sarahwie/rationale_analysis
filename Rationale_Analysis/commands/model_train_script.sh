@@ -9,7 +9,7 @@ export OUTPUT_BASE_PATH=${OUTPUT_DIR:-outputs}/${DATASET_NAME:?"Set dataset name
 
 export SEED=${RANDOM_SEED:-100}
 
-if [[ -f "${OUTPUT_BASE_PATH}/metrics.json" ]]; then
+if [[ -f "${OUTPUT_BASE_PATH}/metrics.json" && -z "$again" ]]; then
     echo "${OUTPUT_BASE_PATH}/metrics.json exists ... . Not running Training ";
 else 
     echo "${OUTPUT_BASE_PATH}/metrics.json does not exist ... . TRAINING ";

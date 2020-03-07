@@ -1,7 +1,8 @@
 from typing import Optional, Dict, Any
 
 import torch
-from transformers import BertForSequenceClassification
+import torch.nn as nn
+from transformers import AutoModel, AutoConfig
 
 from allennlp.data.vocabulary import Vocabulary
 from allennlp.models.model import Model
@@ -24,11 +25,13 @@ class BertClassifier(RationaleBaseModel):
         super(BertClassifier, self).__init__(vocab, initializer, regularizer)
         self._vocabulary = vocab
         self._num_labels = self._vocabulary.get_vocab_size("labels")
-        self._bert_model = BertForSequenceClassification.from_pretrained(
-            bert_model, num_labels=self._num_labels, hidden_dropout_prob=dropout, output_attentions=True
-        )
+        self._bert_config = AutoConfig.from_pretrained(bert_model, output_attentions=True)
+        self._bert_model = AutoModel.from_pretrained(bert_model, config=self._bert_config)
 
-        self.embedding_layers = [self._bert_model.bert.embeddings]
+        self._dropout = nn.Dropout(dropout)
+        self._classifier = nn.Linear(self._bert_model.config.hidden_size, self._num_labels)
+
+        self.embedding_layers = [self._bert_model.embeddings]
 
         if requires_grad in ["none", "all"]:
             for param in self._bert_model.parameters():
@@ -39,22 +42,21 @@ class BertClassifier(RationaleBaseModel):
                 found = any([regex in name for regex in model_name_regexes])
                 param.requires_grad = found
 
-        for n, v in self._bert_model.named_parameters():
-            if n.startswith("classifier"):
-                v.requires_grad = True
-
         initializer(self)
 
     def forward(self, document, query=None, label=None, metadata=None, **kwargs) -> Dict[str, Any]:
         # pylint: disable=arguments-differ,unused-argument
 
         bert_document = self.combine_document_query(document, query)
-        input_ids = bert_document["bert"]['wordpiece_ids']
-        input_mask = (input_ids != 0).long()
 
-        logits, attentions = self._bert_model(
+        input_ids = bert_document["bert"]["wordpiece-ids"]
+        input_mask = bert_document["bert"]["wordpiece-mask"]
+
+        _, pooled_output, attentions = self._bert_model(
             input_ids, attention_mask=input_mask, position_ids=bert_document["bert"]["position-ids"]
         )
+
+        logits = self._classifier(self._dropout(pooled_output))
 
         probs = torch.nn.Softmax(dim=-1)(logits)
 
