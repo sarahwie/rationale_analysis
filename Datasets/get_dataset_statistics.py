@@ -42,6 +42,7 @@ def main(args):
             if col.endswith("length") :
                 desc = np.median(rows[col].values)
                 print(col, np.max(rows[col].values))
+                print(col, np.percentile(rows[col].values, 90))
                 new_data[col] = desc
 
             elif col == 'label':

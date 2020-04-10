@@ -1,8 +1,10 @@
-local bert_type = '/run/media/jainsarthak/data/projects/bigdata/scibert_scivocab_uncased';
+local bert_type = if std.findSubstr('evinf', std.extVar('TRAIN_DATA_PATH')) == [] then 'roberta-base' else '/media/jainsarthak/data/projects/bigdata/scibert_scivocab_uncased';
+local tok_type = if std.findSubstr('evinf', std.extVar('TRAIN_DATA_PATH')) == [] then 'roberta-base' else '/media/jainsarthak/data/projects/bigdata/scibert_scivocab_uncased';
+
 local bert_model = {
   type: "bert_classifier",
   bert_model: bert_type,
-  requires_grad: '9,11,10,pooler',
+  requires_grad: '10,11,pooler',
   dropout : 0.2,
 };
 
@@ -14,7 +16,7 @@ local indexer = "pretrained-simple";
     token_indexers : {
       bert : {
         type : indexer,
-        model_name : bert_type,
+        model_name : tok_type,
       },
     },
     keep_prob: std.extVar('KEEP_PROB')
@@ -24,7 +26,7 @@ local indexer = "pretrained-simple";
     token_indexers : {
       bert : {
         type : indexer,
-        model_name : bert_type,
+        model_name : tok_type,
       },
     },
   },

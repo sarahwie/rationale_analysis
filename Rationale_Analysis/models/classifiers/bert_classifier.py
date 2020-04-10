@@ -8,6 +8,9 @@ from allennlp.data.vocabulary import Vocabulary
 from allennlp.models.model import Model
 from allennlp.nn import InitializerApplicator, RegularizerApplicator, util
 from Rationale_Analysis.models.classifiers.base_model import RationaleBaseModel
+from Rationale_Analysis.models.utils import generate_embeddings_for_pooling
+
+# from longformer.longformer import Longformer
 
 
 @Model.register("bert_classifier")
@@ -28,6 +31,8 @@ class BertClassifier(RationaleBaseModel):
         self._bert_config = AutoConfig.from_pretrained(bert_model, output_attentions=True)
         self._bert_model = AutoModel.from_pretrained(bert_model, config=self._bert_config)
 
+        # self._bert_model = Longformer.from_pretrained(bert_model, output_attentions=True)
+
         self._dropout = nn.Dropout(dropout)
         self._classifier = nn.Linear(self._bert_model.config.hidden_size, self._num_labels)
 
@@ -47,14 +52,17 @@ class BertClassifier(RationaleBaseModel):
     def forward(self, document, query=None, label=None, metadata=None, **kwargs) -> Dict[str, Any]:
         # pylint: disable=arguments-differ,unused-argument
 
-        bert_document = self.combine_document_query(document, query)
+        bert_document = self.combine_document_query(document, query)       
 
-        input_ids = bert_document["bert"]["wordpiece-ids"]
-        input_mask = bert_document["bert"]["wordpiece-mask"]
-
-        _, pooled_output, attentions = self._bert_model(
-            input_ids, attention_mask=input_mask, position_ids=bert_document["bert"]["position-ids"]
-        )
+        try :
+            _, pooled_output, attentions = self._bert_model(
+                bert_document["bert"]["wordpiece-ids"],
+                attention_mask=bert_document["bert"]["wordpiece-mask"],
+                position_ids=bert_document["bert"]["position-ids"],
+                token_type_ids=bert_document["bert"]["type-ids"],
+            )
+        except :
+            breakpoint()
 
         logits = self._classifier(self._dropout(pooled_output))
 
@@ -70,10 +78,8 @@ class BertClassifier(RationaleBaseModel):
         output_dict["attentions"] = attentions
         output_dict["metadata"] = metadata
 
-        output_dict["input_ids"] = input_ids
-        output_dict["input_mask"] = input_mask
-        output_dict["input_starting_offsets"] = bert_document["bert"]["starting-offsets"]
-        output_dict["input_ending_offsets"] = bert_document["bert"]["ending-offsets"]
+        output_dict["document-starting-offsets"] = bert_document["bert"]["document-starting-offsets"]
+        output_dict["document-ending-offsets"] = bert_document["bert"]["document-ending-offsets"]
 
         if label is not None:
             loss = torch.nn.CrossEntropyLoss()(logits, label)
@@ -90,30 +96,13 @@ class BertClassifier(RationaleBaseModel):
         return new_output_dict
 
     def normalize_attentions(self, output_dict) -> None:
-        attentions, input_offsets, input_mask = (
-            output_dict["attentions"],
-            output_dict["input_starting_offsets"],
-            output_dict["input_mask"],
-        )
-        cumsumed_attentions = attentions.cumsum(-1)
+        attentions = output_dict['attentions'].unsqueeze(-1)
+        document_token_starts = output_dict['document-starting-offsets']
+        document_token_ends = output_dict['document-ending-offsets']
+        
+        token_attentions, token_mask = generate_embeddings_for_pooling(attentions, document_token_starts, document_token_ends)
 
-        starting_offsets = input_offsets
-        starting_offsets = torch.cat(
-            [starting_offsets, torch.zeros((starting_offsets.shape[0], 1)).long().to(starting_offsets.device)], dim=-1
-        )
-        starting_offsets += (starting_offsets == 0) * (input_mask.sum(-1)[:, None] - 1)
-
-        ending_offsets = starting_offsets[:, 1:]
-        starting_offsets = starting_offsets[:, :-1]
-        ending_offsets = ending_offsets - 1
-        starting_offsets = starting_offsets - 1
-
-        cumsumed_attentions = cumsumed_attentions.unsqueeze(-1)
-        output_dict["attentions"] = (
-            util.batched_index_select(cumsumed_attentions, ending_offsets)
-            - util.batched_index_select(cumsumed_attentions, starting_offsets)
-        ).squeeze(-1) * (input_offsets != 0).float()
-
-        output_dict["attentions"] = output_dict["attentions"] / output_dict["attentions"].sum(-1, keepdim=True)
+        token_attentions = (token_attentions * token_mask.unsqueeze(-1)).squeeze(-1).sum(-1)
+        output_dict["attentions"] = token_attentions / token_attentions.sum(-1, keepdim=True)
 
         return output_dict

@@ -1,18 +1,20 @@
 from typing import Optional, Dict, Any
 
 import torch
-from transformers import BertModel
+from transformers import AutoModel
 
 from allennlp.data.vocabulary import Vocabulary
 from allennlp.models.model import Model
 from allennlp.nn import InitializerApplicator, RegularizerApplicator, util
 from allennlp.training.metrics import F1Measure
 
+from Rationale_Analysis.models.classifiers.base_model import RationaleBaseModel
+
 from Rationale_Analysis.models.utils import generate_embeddings_for_pooling
 
 
 @Model.register("bernoulli_bert_generator")
-class BernoulliBertGenerator(Model):
+class BernoulliBertGenerator(RationaleBaseModel):
     def __init__(
         self,
         vocab: Vocabulary,
@@ -24,11 +26,11 @@ class BernoulliBertGenerator(Model):
         regularizer: Optional[RegularizerApplicator] = None,
     ):
 
-        super(BernoulliBertGenerator, self).__init__(vocab, regularizer)
+        super(BernoulliBertGenerator, self).__init__(vocab, initializer, regularizer)
         self._vocabulary = vocab
-        self._bert_model = BertModel.from_pretrained(bert_model)
+        self._bert_model = AutoModel.from_pretrained(bert_model)
         self._dropout = torch.nn.Dropout(p=dropout)
-        self._classification_layer = torch.nn.Linear(self._bert_model.config.hidden_size, 2)
+        self._classification_layer = torch.nn.Linear(self._bert_model.config.hidden_size, 1, bias=False)
 
         if requires_grad in ["none", "all"]:
             for param in self._bert_model.parameters():
@@ -48,39 +50,39 @@ class BernoulliBertGenerator(Model):
 
         initializer(self)
 
-    def forward(self, document, query=None, rationale=None) -> Dict[str, Any]:
+    def forward(self, document, query=None, label=None, metadata=None, rationale=None, **kwargs) -> Dict[str, Any]:
         #pylint: disable=arguments-differ
 
         bert_document = self.combine_document_query(document, query)
-        input_ids = bert_document["bert"]
-        input_mask = (input_ids != 0).long()
-        starting_offsets = bert_document["bert-starting-offsets"]  # (B, T)
-
+        
         last_hidden_states, _ = self._bert_model(
-            input_ids, attention_mask=input_mask, position_ids=bert_document["bert-position-ids"]
+            bert_document["bert"]["wordpiece-ids"],
+            attention_mask=bert_document["bert"]["wordpiece-mask"],
+            position_ids=bert_document["bert"]["position-ids"],
+            token_type_ids=bert_document["bert"]["type-ids"],
         )
 
         token_embeddings, span_mask = generate_embeddings_for_pooling(
-            last_hidden_states, starting_offsets, bert_document["bert-ending-offsets"]
+            last_hidden_states, 
+            bert_document["bert"]['document-starting-offsets'], 
+            bert_document["bert"]['document-ending-offsets']
         )
 
         token_embeddings = util.masked_max(token_embeddings, span_mask.unsqueeze(-1), dim=2)
-        token_embeddings = token_embeddings * bert_document["mask"].unsqueeze(-1)
+        token_embeddings = token_embeddings * bert_document['bert']["mask"].unsqueeze(-1)
 
         logits = self._classification_layer(self._dropout(token_embeddings))
 
-        assert logits.shape[0:2] == starting_offsets.shape
-
-        probs = torch.nn.Softmax(dim=-1)(logits)[:, :, 1]
-        mask = bert_document["mask"]
+        probs = torch.sigmoid(logits)[:, :, 0]
+        mask = bert_document['bert']['mask']
 
         output_dict = {}
         output_dict["probs"] = probs * mask
+        output_dict['mask'] = mask
         predicted_rationale = (probs > 0.5).long()
 
         output_dict["predicted_rationale"] = predicted_rationale * mask
         output_dict["prob_z"] = probs * mask
-        output_dict["mask"] = bert_document['mask']
 
         if rationale is not None :
             rat_mask = (rationale.sum(1) > 0)
@@ -90,7 +92,7 @@ class BernoulliBertGenerator(Model):
                 weight = torch.Tensor([1.0, self._pos_weight]).to(logits.device)
                 loss = torch.nn.functional.cross_entropy(logits[rat_mask].transpose(1, 2), rationale[rat_mask], weight=weight)
                 output_dict['loss'] = loss
-                self._token_prf(logits[rat_mask], rationale[rat_mask], bert_document["mask"][rat_mask])
+                self._token_prf(logits[rat_mask], rationale[rat_mask], bert_document['bert']["mask"][rat_mask])
 
 
         return output_dict

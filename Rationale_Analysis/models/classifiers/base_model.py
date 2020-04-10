@@ -31,10 +31,6 @@ class RationaleBaseModel(Model):
         output_dict = self._decode(output_dict)
         output_labels = self._vocabulary.get_index_to_token_vocabulary("labels")
 
-        for m in output_dict["metadata"]:
-            if "convert_tokens_to_instance" in m:
-                del m["convert_tokens_to_instance"]
-
         predicted_labels, gold_labels = [], []
         for p, g in zip(output_dict["predicted_label"], output_dict["label"]):
             predicted_labels.append(output_labels[int(p)])

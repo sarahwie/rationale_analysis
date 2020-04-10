@@ -9,9 +9,9 @@ from allennlp.data.vocabulary import Vocabulary
 from allennlp.models.model import Model
 from allennlp.nn import InitializerApplicator, RegularizerApplicator, util
 from Rationale_Analysis.models.classifiers.base_model import RationaleBaseModel
-from allennlp.data.dataset import Batch
 
 from allennlp.training.metrics import Average
+
 
 @Model.register("bernoulli_gen_enc_classifier")
 class BernoulliGenEncClassifier(RationaleBaseModel):
@@ -48,17 +48,20 @@ class BernoulliGenEncClassifier(RationaleBaseModel):
 
         self._loss_tracks = {
             k: Average()
-            for k in ["_lasso_loss", "_base_loss", "_rat_length", "_fused_lasso_loss", "_average_span_length",]
+            for k in ["_lasso_loss", "_base_loss", "_rat_length", "_fused_lasso_loss", "_censored_lasso_loss", "_generator_loss"]
         }
 
         initializer(self)
 
-    def forward(self, document, query=None, label=None, metadata=None) -> Dict[str, Any]:
+    def forward(self, document, query=None, label=None, metadata=None, rationale=None) -> Dict[str, Any]:
+        # pylint: disable=arguments-differ
+
         generator_dict = self._generator(document, query, label)
-        mask = generator_dict['mask']
+        mask = generator_dict["mask"]
         assert "probs" in generator_dict
 
         prob_z = generator_dict["probs"]
+        predicted_rationale = generator_dict['predicted_rationale'].float()
         assert len(prob_z.shape) == 2
 
         output_dict = {}
@@ -77,35 +80,39 @@ class BernoulliGenEncClassifier(RationaleBaseModel):
             sample_z = sampler.sample()
 
         sample_z = sample_z * mask
-        reduced_document = self.regenerate_tokens(metadata, sample_z)
-        encoder_dict = self._encoder(document=reduced_document, query=query, label=label, metadata=metadata,)
+        reduced_document = self.select_tokens(document, sample_z)
+        
+        encoder_dict = self._encoder(document=reduced_document, query=query, label=label, metadata=metadata)
 
         loss = 0.0
 
         if label is not None:
             assert "loss" in encoder_dict
+            loss_sample = F.cross_entropy(encoder_dict["logits"], label, reduction="none")  # (B,)
 
             log_prob_z = sampler.log_prob(sample_z)  # (B, L)
             log_prob_z_sum = (mask * log_prob_z).sum(-1)  # (B,)
-            loss_sample = F.cross_entropy(encoder_dict["logits"], label, reduction="none")  # (B,)
 
-            sparsity = util.masked_mean(sample_z, mask, dim=-1)
-            censored_lasso_loss = F.relu(sparsity - self._desired_length)
+            lasso_loss = util.masked_mean(sample_z, mask, dim=-1)
+            censored_lasso_loss = F.relu(lasso_loss - self._desired_length)
 
             diff = (sample_z[:, 1:] - sample_z[:, :-1]).abs()
             mask_last = mask[:, :-1]
             fused_lasso_loss = diff.sum(-1) / mask_last.sum(-1)
 
-            self._loss_tracks["_lasso_loss"](sparsity.mean().item())
+            self._loss_tracks["_lasso_loss"](lasso_loss.mean().item())
+            self._loss_tracks["_censored_lasso_loss"](censored_lasso_loss.mean().item())
             self._loss_tracks["_fused_lasso_loss"](fused_lasso_loss.mean().item())
             self._loss_tracks["_base_loss"](loss_sample.mean().item())
 
             base_loss = loss_sample
             generator_loss = (
-                loss_sample.detach()
+                loss_sample.detach() 
                 + censored_lasso_loss * self._reg_loss_lambda
                 + fused_lasso_loss * (self._reg_loss_mu * self._reg_loss_lambda)
             ) * log_prob_z_sum
+
+            self._loss_tracks["_generator_loss"](generator_loss.mean().item())
 
             loss += (base_loss + generator_loss).mean()
 
@@ -135,26 +142,20 @@ class BernoulliGenEncClassifier(RationaleBaseModel):
         new_output_dict["rationale"] = output_dict["rationale"]
         return new_output_dict
 
-    def regenerate_tokens(self, metadata, sample_z):
+    def select_tokens(self, document, sample_z):
         sample_z_cpu = sample_z.cpu().data.numpy()
-        tokens = [m["tokens"] for m in metadata]
-        keep_tokens = [m["keep_tokens"] for m in metadata]
+        assert len(document) == len(sample_z_cpu)
+        
+        new_document = []
+        for doc, mask in zip(document, sample_z_cpu):
+            mask = mask[: len(doc['tokens'])]
+            new_words = [w for w, m in zip(doc['tokens'], mask) if m == 1]
 
-        assert len(tokens) == len(sample_z_cpu)
-        instances = []
-        for words, mask, keep in zip(tokens, sample_z_cpu, keep_tokens):
-            mask = mask[: len(words)]
-            new_words = [w for i, (w, m, k) in enumerate(zip(words, mask, keep)) if i == 0 or m == 1]  # or k == 1]
+            new_document.append({'tokens' : new_words})
 
-            instance = metadata[0]["convert_tokens_to_instance"](new_words)
-            instances.append(instance)
+        new_document[0]['reader_object'] = document[0]['reader_object']
 
-        batch = Batch(instances)
-        batch.index_instances(self._vocabulary)
-        padding_lengths = batch.get_padding_lengths()
-
-        batch = batch.as_tensor_dict(padding_lengths)
-        return {k: v.to(sample_z.device) for k, v in batch["document"].items()}
+        return new_document
 
     def get_metrics(self, reset: bool = False) -> Dict[str, float]:
         base_metrics = super(BernoulliGenEncClassifier, self).get_metrics(reset)
@@ -162,10 +163,5 @@ class BernoulliGenEncClassifier(RationaleBaseModel):
         loss_metrics = {"_total" + k: v._total_value for k, v in self._loss_tracks.items()}
         loss_metrics.update({k: v.get_metric(reset) for k, v in self._loss_tracks.items()})
         loss_metrics.update(base_metrics)
-
-        reg_loss = loss_metrics["_rat_length"]
-        accuracy = loss_metrics["accuracy"]
-
-        loss_metrics["reg_accuracy"] = accuracy - 1000 * max(0, reg_loss - self._desired_length)
 
         return loss_metrics

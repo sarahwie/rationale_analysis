@@ -1,5 +1,8 @@
 import json
-from typing import Dict, List
+from typing import Dict, List, Tuple, Any
+
+import contextlib
+from allennlp.common.checks import ConfigurationError
 
 import numpy as np
 import torch
@@ -37,7 +40,6 @@ class BaseReader(DatasetReader):
         rs = RandomState(seed=1000)
         with open(cached_path(file_path), "r") as data_file:
             for _, line in enumerate(data_file.readlines()):
-                # if _ > 10: break
                 items = json.loads(line)
                 document = items["document"]
                 annotation_id = items["annotation_id"]
@@ -69,7 +71,7 @@ class BaseReader(DatasetReader):
                 human_rationale_labels[i] = 1
 
         if query is not None:
-            query_tokens = [Token("</s>", info={}), Token("<s>", info={})] + [Token(t.text, info={}) for t in self._tokenizer.tokenize(query)]
+            query_tokens = [Token(t.text, info={}) for t in self._tokenizer.tokenize(query)]
         else:
             query_tokens = []
 
@@ -96,20 +98,19 @@ class BaseReader(DatasetReader):
 
         return Instance(fields)
 
-    def convert_tokens_to_instance(self, tokens: List[Token], query_mask: List[int]):
+    def convert_tokens_to_instance(self, tokens: List[Token]):
         fields = {}
+        tokens = tokens[0] + (([Token('[DQSEP]')] + tokens[1]) if len(tokens[1]) > 0 else [])
         fields["document"] = TextField(tokens, self._token_indexers)
-        fields["query_mask"] = ArrayField(np.array(query_mask).astype(int))
+
         return Instance(fields)
 
-    def convert_documents_to_batch(self, documents: List[List[Token]], query_masks: List[List[int]], vocabulary) -> torch.IntTensor:
-        batch = Batch([self.convert_tokens_to_instance(tokens, q_mask) for tokens, q_mask in zip(documents, query_masks)])
+    def convert_documents_to_batch(self, documents: List[Tuple[List[Token], List[Token]]], vocabulary) -> Dict[str, Any]:
+        batch = Batch([self.convert_tokens_to_instance(tokens) for tokens in documents])
         batch.index_instances(vocabulary)
         batch = batch.as_tensor_dict()
-        batch['document']['query_mask'] = batch['query_mask'].long()
         return batch["document"]
 
     def combine_document_query(self, document: List[MetadataField], query: List[MetadataField], vocabulary):
-        document_tokens = [x["tokens"] + y["tokens"] for x, y in zip(document, query)]
-        query_masks = [[1] * len(x["tokens"]) + [0] * len(y["tokens"]) for x, y in zip(document, query)]
-        return self.convert_documents_to_batch(document_tokens, query_masks, vocabulary)
+        document_tokens = [(x["tokens"], y["tokens"]) for x, y in zip(document, query)]
+        return self.convert_documents_to_batch(document_tokens, vocabulary)

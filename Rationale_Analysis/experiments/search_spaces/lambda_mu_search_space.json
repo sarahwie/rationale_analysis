@@ -2,14 +2,14 @@
     "LAMBDA" : {
         "type" : "hp.loguniform",
         "options" : {
-            "low" : -4,
-            "high" : 0.1
+            "low" : -3,
+            "high" : -0.2
         }
     },
     "MU" : {
         "type" : "hp.choice",
         "options" : {
-            "options" : [1.0, 2.0, 5.0, 10.0]
+            "options" : [0.0, 0.5, 1.0, 2.0]
         }
     }
 }
