@@ -14,4 +14,4 @@
 
 source /home/jain.sar/Fresh/Rationale_Analysis/discovery_cluster_essentials.sh
 
-$1
+$1 $2
