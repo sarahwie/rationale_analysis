@@ -21,15 +21,13 @@ class ExtractiveReader(DatasetReader):
         self,
         token_indexers: Dict[str, TokenIndexer],
         tokenizer: Tokenizer,
-        max_sequence_length: int = None,
         keep_prob: float = 1.0,
         lazy: bool = False,
     ) -> None:
         super().__init__(lazy=lazy)
         self._tokenizer = tokenizer
-        self._max_sequence_length = max_sequence_length
         self._token_indexers = token_indexers
-        self._keep_prob = 1.0 #keep_prob
+        self._keep_prob = keep_prob
 
         self._bert = "bert" in token_indexers
 
@@ -110,7 +108,7 @@ class ExtractiveReader(DatasetReader):
             "document": document,
             "query": query,
             "convert_tokens_to_instance": self.convert_tokens_to_instance,
-            "label" : label
+            "label": label,
         }
 
         fields["metadata"] = MetadataField(metadata)
