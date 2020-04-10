@@ -2,7 +2,7 @@
     "LAMBDA" : {
         "type" : "hp.loguniform",
         "options" : {
-            "low" : -3,
+            "low" : -2,
             "high" : -0.2
         }
     },

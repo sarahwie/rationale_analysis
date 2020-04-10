@@ -12,6 +12,6 @@
 #SBATCH --partition=gpu
 #SBATCH --gres=gpu:v100-sxm2:1
 
-source /home/jain.sar/Rationale_Analysis/Rationale_Analysis/discovery_cluster_essentials.sh
+source /home/jain.sar/Fresh/Rationale_Analysis/discovery_cluster_essentials.sh
 
 $1
