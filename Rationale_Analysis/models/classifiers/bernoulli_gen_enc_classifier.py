@@ -23,7 +23,7 @@ class BernoulliGenEncClassifier(RationaleBaseModel):
         samples: int,
         reg_loss_lambda: float,
         desired_length: float,
-        reg_loss_mu: float = 2,
+        reg_loss_mu: float,
         rationale_extractor: Model = None,
         initializer: InitializerApplicator = InitializerApplicator(),
         regularizer: Optional[RegularizerApplicator] = None,
@@ -61,7 +61,7 @@ class BernoulliGenEncClassifier(RationaleBaseModel):
         assert "probs" in generator_dict
 
         prob_z = generator_dict["probs"]
-        predicted_rationale = generator_dict['predicted_rationale'].float()
+
         assert len(prob_z.shape) == 2
 
         output_dict = {}
@@ -71,9 +71,9 @@ class BernoulliGenEncClassifier(RationaleBaseModel):
             if self._rationale_extractor is None:
                 sample_z = generator_dict["predicted_rationale"].float()
             else:
-                sample_z = self._rationale_extractor.extract_rationale(prob_z, metadata, as_one_hot=True)
+                sample_z = self._rationale_extractor.extract_rationale(prob_z, document, as_one_hot=True)
                 output_dict["rationale"] = self._rationale_extractor.extract_rationale(
-                    prob_z, metadata, as_one_hot=False
+                    prob_z, document, as_one_hot=False
                 )
                 sample_z = torch.Tensor(sample_z).to(prob_z.device).float()
         else:
@@ -145,6 +145,7 @@ class BernoulliGenEncClassifier(RationaleBaseModel):
     def select_tokens(self, document, sample_z):
         sample_z_cpu = sample_z.cpu().data.numpy()
         assert len(document) == len(sample_z_cpu)
+        assert max([len(d['tokens']) for d in document]) == sample_z_cpu.shape[1]
         
         new_document = []
         for doc, mask in zip(document, sample_z_cpu):
