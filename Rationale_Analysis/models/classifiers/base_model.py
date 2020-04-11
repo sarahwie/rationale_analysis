@@ -38,6 +38,9 @@ class RationaleBaseModel(Model):
 
         output_dict["predicted_label"] = predicted_labels
         output_dict["label"] = gold_labels
+        output_dict["annotation_id"] = [d['annotation_id'] for d in output_dict['metadata']]
+
+        del output_dict['metadata']
 
         return output_dict
 
