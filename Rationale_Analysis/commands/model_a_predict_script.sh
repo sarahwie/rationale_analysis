@@ -46,7 +46,7 @@ function evaluate {
 }
 
 evaluate $RATIONALE_FOLDER_NAME/dev_metrics.json $DEV_DATA_PATH
-evaluate $RATIONALE_FOLDER_NAME/test_metrics.json $TEST_DATA_PATH
+# evaluate $RATIONALE_FOLDER_NAME/test_metrics.json $TEST_DATA_PATH
 
 # rationale $RATIONALE_FOLDER_NAME/dev_rationales.jsonl $DEV_DATA_PATH
 # rationale $RATIONALE_FOLDER_NAME/test_rationales.jsonl $TEST_DATA_PATH
