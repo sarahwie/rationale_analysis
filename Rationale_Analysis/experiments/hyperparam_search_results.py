@@ -27,7 +27,7 @@ def main(args):
                 config = json.load(open(os.path.join(exp_name, 'config.json')))
                 mu.append(config['model']['reg_loss_mu'])
                 lambdav.append(config['model']['reg_loss_lambda'])
-                metrics = json.load(open(os.path.join(exp_name, 'dev_metrics.json')))['validation_metric']
+                metrics = json.load(open(os.path.join(exp_name, f'{method}_rationale/dev_metrics.json')))['validation_metric']
                 value.append(metrics)
                 rtype.append(method)
         except FileNotFoundError:
