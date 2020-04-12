@@ -7,8 +7,8 @@
     },
     "multirc" : {
         "MAX_LENGTH_RATIO" : 0.2,
-        "MU" : 2.0,
-        "LAMBDA" : 0.20,
+        "MU" : 1.0,
+        "LAMBDA" : 0.12,
         "BSIZE" : 8
     },
     "movies" : {
