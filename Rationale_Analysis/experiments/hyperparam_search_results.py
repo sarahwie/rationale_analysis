@@ -22,17 +22,17 @@ def main(args):
 
     for i in range(args.num_searches) :
         exp_name = os.path.join(args.exp_folder, "search_" + str(i))
-        try :
-            for method in ['top_k', 'max_length'] :
+        for method in ['top_k', 'max_length'] :
+            try :
                 config = json.load(open(os.path.join(exp_name, 'config.json')))
-                metrics = json.load(open(os.path.join(exp_name, f'{method}_rationale/dev_metrics.json')))['validation_metric']
+                metrics = json.load(open(os.path.join(exp_name, f'{method}_rationale/direct/dev_metrics.json')))['validation_metric']
                 mu.append(config['model']['reg_loss_mu'])
                 lambdav.append(config['model']['reg_loss_lambda'])
                 value.append(metrics)
                 rtype.append(method)
-        except FileNotFoundError:
-            print(os.path.join(exp_name, f'{method}_rationale/dev_metrics.json'))
-            continue
+            except FileNotFoundError:
+                print(os.path.join(exp_name, f'{method}_rationale/dev_metrics.json'))
+                continue
 
     df = pd.DataFrame({'mu' : mu, 'lambda' : lambdav, 'type' : rtype, 'value' : value})
 
