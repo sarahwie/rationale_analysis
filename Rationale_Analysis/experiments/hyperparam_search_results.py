@@ -25,12 +25,13 @@ def main(args):
         try :
             for method in ['top_k', 'max_length'] :
                 config = json.load(open(os.path.join(exp_name, 'config.json')))
+                metrics = json.load(open(os.path.join(exp_name, f'{method}_rationale/dev_metrics.json')))['validation_metric']
                 mu.append(config['model']['reg_loss_mu'])
                 lambdav.append(config['model']['reg_loss_lambda'])
-                metrics = json.load(open(os.path.join(exp_name, f'{method}_rationale/dev_metrics.json')))['validation_metric']
                 value.append(metrics)
                 rtype.append(method)
         except FileNotFoundError:
+            print(os.path.join(exp_name, f'{method}_rationale/dev_metrics.json'))
             continue
 
     df = pd.DataFrame({'mu' : mu, 'lambda' : lambdav, 'type' : rtype, 'value' : value})
