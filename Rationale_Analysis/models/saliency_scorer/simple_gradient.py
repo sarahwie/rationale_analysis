@@ -15,9 +15,7 @@ class GradientSaliency(SaliencyScorer) :
         logging.info("Initialising from Model .... ")
         model = self._model['model']
 
-        _embedding_layer = [
-            x for x in list(model.modules()) if any(y in str(type(x)) for y in model.embedding_layers)
-        ]
+        _embedding_layer = [x for x in model.modules() if any(x == y for y in model.embedding_layers)]
         assert len(_embedding_layer) == 1
 
         self._embedding_layer['embedding_layer'] = _embedding_layer[0]

@@ -20,7 +20,7 @@ class RationaleExtractor(Model) :
         new_output_dict['document'] = [r['document'] for r in output_dict['rationale']]
         
         if 'query' in output_dict['metadata'][0] :
-            output_dict['query'] = [m['query'] for m in output_dict['metadata']]
+            new_output_dict['query'] = [m['query'] for m in output_dict['metadata']]
 
         new_output_dict['label'] = [m['label'] for m in output_dict['metadata']]
         new_output_dict['annotation_id'] = [m['annotation_id'] for m in output_dict['metadata']]
