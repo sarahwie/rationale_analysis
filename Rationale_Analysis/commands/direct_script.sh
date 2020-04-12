@@ -1,4 +1,4 @@
-# bash Rationale_Analysis/commands/model_a_train_script.sh;
+bash Rationale_Analysis/commands/model_a_train_script.sh;
 
 export PYTHONPATH=.
 
@@ -10,8 +10,6 @@ for saliency in wrapper simple_gradient;
         SALIENCY=$saliency \
         RATIONALE=$rationale \
         RATIONALE_EXP_NAME=direct \
-        bash Rationale_Analysis/commands/rationale_extractor_script.sh;
+        sbatch Cluster_scripts/gpu_sbatch.sh bash Rationale_Analysis/commands/rationale_and_model_b_script.sh;
         done;
     done;
-
-#sbatch Cluster_scripts/gpu_sbatch.sh 
