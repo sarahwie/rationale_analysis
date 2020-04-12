@@ -1,4 +1,4 @@
-export OUTPUT_BASE_PATH=${OUTPUT_DIR:-outputs}/${CLASSIFIER:?"Set classifier"}/${DATASET_NAME:?"Set dataset name"}/${EXP_NAME:?"Set Exp name"}
+export OUTPUT_BASE_PATH=${OUTPUT_DIR:-outputs}/${DATASET_NAME:?"Set dataset name"}/${CLASSIFIER:?"Set classifier"}/${EXP_NAME:?"Set Exp name"}
 
 export TRAIN_DATA_PATH=$OUTPUT_BASE_PATH/${SALIENCY:?"Set Saliency scorer"}_saliency/train.jsonl
 export DEV_DATA_PATH=$OUTPUT_BASE_PATH/${SALIENCY}_saliency/dev.jsonl
@@ -14,7 +14,7 @@ function rationale {
         echo "$1 exists ... Not running Rationale ";
     else 
         echo "$1 do not exist RUNNING RATIONALE ";
-        python -m Rationale_Analysis.commands.allennlp_runs rationale \
+        allennlp rationale \
         --output-file $1 \
         --batch-size ${BSIZE:-50} \
         --use-dataset-reader \

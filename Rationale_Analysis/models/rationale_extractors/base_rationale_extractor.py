@@ -16,13 +16,13 @@ class RationaleExtractor(Model) :
     def decode(self, output_dict) :
         new_output_dict = {}
 
-        new_output_dict['rationale'] = output_dict['rationale']
+        new_output_dict['predicted_rationale'] = output_dict['rationale']
         new_output_dict['document'] = [r['document'] for r in output_dict['rationale']]
         
         if 'query' in output_dict['metadata'][0] :
             output_dict['query'] = [m['query'] for m in output_dict['metadata']]
 
         new_output_dict['label'] = [m['label'] for m in output_dict['metadata']]
-        new_output_dict['metadata'] = output_dict['metadata']
+        new_output_dict['annotation_id'] = [m['annotation_id'] for m in output_dict['metadata']]
 
         return new_output_dict

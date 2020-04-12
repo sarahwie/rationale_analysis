@@ -7,6 +7,6 @@
     },
     model : {
         type : 'max_length',
-        max_length_ratio: std.parseInt(std.extVar('MAX_LENGTH_PERCENT')) / 100
+        max_length_ratio: std.extVar('MAX_LENGTH_RATIO')
     },
 }

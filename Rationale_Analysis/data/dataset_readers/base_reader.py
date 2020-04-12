@@ -83,15 +83,18 @@ class BaseReader(DatasetReader):
         fields["document"] = MetadataField({"tokens": document_tokens, "reader_object": self})
         fields["query"] = MetadataField({"tokens": query_tokens})
         fields["rationale"] = ArrayField(np.array(human_rationale_labels))
-        fields["metadata"] = MetadataField(
-            {
-                "annotation_id": annotation_id,
-                "human_rationale": rationale,
-                "document": document,
-                "query": query,
-                "label": label,
-            }
-        )
+
+        metadata = {
+            "annotation_id": annotation_id,
+            "human_rationale": rationale,
+            "document": document,
+            "label": label,
+        }
+
+        if query is not None :
+            metadata['query'] = query
+
+        fields["metadata"] = MetadataField(metadata)
 
         if label is not None:
             fields["label"] = LabelField(label, label_namespace="labels")
