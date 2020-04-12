@@ -1,25 +1,27 @@
 """
-The ``predict`` subcommand allows you to make bulk JSON-to-JSON
+The ``saliency`` subcommand allows you to make bulk JSON-to-JSON
 or dataset to JSON predictions using a trained model and its
 :class:`~allennlp.service.predictors.predictor.Predictor` wrapper.
 
 .. code-block:: bash
 
-    $ allennlp predict --help
-    usage: allennlp predict [-h] [--output-file OUTPUT_FILE]
+    $ python -m Rationale_Analysis.commands.allennlp_runs saliency --help
+    usage: python -m Rationale_Analysis.commands.allennlp_runs saliency 
+                            [-h] [--output-file OUTPUT_FILE]
                             [--weights-file WEIGHTS_FILE]
                             [--batch-size BATCH_SIZE] [--silent]
                             [--cuda-device CUDA_DEVICE] [--use-dataset-reader]
                             [--dataset-reader-choice {train,validation}]
                             [-o OVERRIDES] [--predictor PREDICTOR]
                             [--include-package INCLUDE_PACKAGE]
-                            archive_file input_file
+                            archive_file scorer_config_file input_file
 
     Run the specified model against a JSON-lines input file.
 
     positional arguments:
       archive_file          the archived model to make predictions with
       input_file            path to or url of the input file
+      scorer_config_file    path to config file for saliency scorer
 
     optional arguments:
       -h, --help            show this help message and exit
@@ -65,18 +67,25 @@ from allennlp.data import Instance
 from allennlp.common import Params
 from allennlp.models.model import Model
 
-class RationalePredict(Subcommand):
+from tqdm import tqdm
+
+@Subcommand.register('saliency')
+class SaliencyPredict(Subcommand):
     def add_subparser(
-        self, name: str, parser: argparse._SubParsersAction
+        self, parser: argparse._SubParsersAction
     ) -> argparse.ArgumentParser:
 
         description = """Run the specified model against a JSON-lines input file."""
         subparser = parser.add_parser(
-            name, description=description, help="Use a trained model to make predictions."
+            self.name, description=description, help="Use a trained model to make predictions."
         )
 
         subparser.add_argument(
-            "extractor_config_file", type=str, help="the configuration file for Rationale Extractor from scores"
+            "archive_file", type=str, help="the archived model to make predictions with"
+        )
+
+        subparser.add_argument(
+            "scorer_config_file", type=str, help="the configuration file for Saliency Scorer"
         )
 
         subparser.add_argument("input_file", type=str, help="path to or url of the input file")
@@ -137,15 +146,18 @@ class RationalePredict(Subcommand):
 
 def _get_predictor(args: argparse.Namespace) -> Predictor:
     check_for_gpu(args.cuda_device)
-    params = Params.from_file(args.extractor_config_file)
+    params = Params.from_file(args.scorer_config_file)
+    archive = load_archive(
+        args.archive_file,
+        weights_file=args.weights_file,
+        cuda_device=args.cuda_device,
+        overrides=args.overrides,
+    )
 
-    model = Model.from_params(vocab=None, params=params.pop('model'))
-    if args.cuda_device >= 0:
-        model.to(args.cuda_device)
-    else:
-        model.to(None)
+    model = Model.from_params(vocab=None, model=archive.model, params=params)
+    model.to(args.cuda_device)
 
-    archive = Archive(model=model, config=params)
+    archive = Archive(model=model, config=archive.config)
 
     return Predictor.from_archive(
         archive, args.predictor, dataset_reader_to_load=args.dataset_reader_choice
@@ -226,7 +238,7 @@ class _PredictManager:
         has_reader = self._dataset_reader is not None
         index = 0
         if has_reader:
-            for batch in lazy_groups_of(self._get_instance_data(), self._batch_size):
+            for batch in tqdm(lazy_groups_of(self._get_instance_data(), self._batch_size)):
                 for model_input_instance, result in zip(batch, self._predict_instances(batch)):
                     self._maybe_print_to_console_and_file(index, result, str(model_input_instance))
                     index = index + 1

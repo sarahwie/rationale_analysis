@@ -16,7 +16,7 @@ from Rationale_Analysis.subcommands.saliency_scorer import SaliencyPredict
 from Rationale_Analysis.subcommands.rationale_extractor import RationalePredict
 
 def run():
-    main(prog="allennlp", subcommand_overrides={'saliency' : SaliencyPredict(), 'rationale' : RationalePredict()})
+    main(prog="allennlp") #, subcommand_overrides={'saliency' : SaliencyPredict(), 'rationale' : RationalePredict()})
 
 
 if __name__ == "__main__":

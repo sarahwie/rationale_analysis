@@ -23,19 +23,23 @@ class SaliencyReader(DatasetReader):
             for line in data_file.readlines():
                 items = json.loads(line)
                 saliency = np.array(items['saliency'])
-                metadata = items['metadata']
-                assert 'tokens' in metadata
-                metadata['tokens'] = [Token(word) for word in metadata['tokens']]
-                instance = self.text_to_instance(saliency=saliency, metadata=metadata)
+                document = items['document']
+                metadata = {k:v for k, v in items.items() if k != 'saliency'}
+                instance = self.text_to_instance(saliency=saliency, document=document, metadata=metadata)
                 if instance is not None:
                     yield instance
 
     @overrides
-    def text_to_instance(self, saliency, metadata: Dict[str, Any]) -> Instance:  # type: ignore
+    def text_to_instance(self, saliency, document, metadata: Dict[str, Any]) -> Instance:  # type: ignore
         # pylint: disable=arguments-differ
         fields = {}
         fields['attentions'] = ArrayField(saliency, padding_value=0.0)
+        fields['document'] = MetadataField({
+            'tokens' : [Token(t) for t in document.split()]
+        })
         fields['metadata'] = MetadataField(metadata)
+
+        assert len(saliency) == len(fields['document'].metadata['tokens'])
 
         return Instance(fields)
 

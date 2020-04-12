@@ -54,15 +54,12 @@ class BertClassifier(RationaleBaseModel):
 
         bert_document = self.combine_document_query(document, query)       
 
-        try :
-            _, pooled_output, attentions = self._bert_model(
-                bert_document["bert"]["wordpiece-ids"],
-                attention_mask=bert_document["bert"]["wordpiece-mask"],
-                position_ids=bert_document["bert"]["position-ids"],
-                token_type_ids=bert_document["bert"]["type-ids"],
-            )
-        except :
-            breakpoint()
+        _, pooled_output, attentions = self._bert_model(
+            bert_document["bert"]["wordpiece-ids"],
+            attention_mask=bert_document["bert"]["wordpiece-mask"],
+            position_ids=bert_document["bert"]["position-ids"],
+            token_type_ids=bert_document["bert"]["type-ids"],
+        )
 
         logits = self._classifier(self._dropout(pooled_output))
 
