@@ -31,5 +31,3 @@ function saliency {
 saliency $SALIENCY_FOLDER_NAME/train.jsonl $TRAIN_DATA_PATH train
 saliency $SALIENCY_FOLDER_NAME/test.jsonl $TEST_DATA_PATH validation
 saliency $SALIENCY_FOLDER_NAME/dev.jsonl $DEV_DATA_PATH validation
-
-#python -m Rationale_Analysis.commands.allennlp_runs
