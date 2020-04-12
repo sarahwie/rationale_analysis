@@ -3,7 +3,7 @@ import torch
 
 class SaliencyScorer(Model) :
     def __init__(self, model) :
-        self._model = { 'model' : model } #This is so the model is protected from Saliency_Scorer's state_dict
+        self._model = { 'model' : model } #This is so the model is protected from Saliency_Scorer's state_dict !
         for v in self._model['model'].parameters() :
             v.requires_grad = False
 
@@ -18,26 +18,24 @@ class SaliencyScorer(Model) :
         return output_dict
 
     def decode(self, output_dict) :
-        model_output_dict = self._model['model'].decode(output_dict)
+        # model_output_dict = self._model['model'].decode(output_dict)
 
-        metadata = model_output_dict['metadata']
-        for k in model_output_dict :
-            if k != 'metadata' :
-                for val, d in zip(model_output_dict[k], metadata) :
-                    d[k] = val
+        assert "attentions" in output_dict
+        assert "metadata" in output_dict
 
-        new_output_dict = {}
-        new_output_dict.update({ 'metadata' : metadata })
+        new_output_dict = {k:[] for k in output_dict['metadata'][0].keys()}
+        for example in output_dict['metadata'] :
+            for k, v in example.items() :
+                new_output_dict[k].append(v)
 
-        tokens_list = [m['tokens'] for m in output_dict['metadata']]
+        tokens = [example.split() for example in new_output_dict['document']]
 
         attentions = output_dict['attentions'].cpu().data.numpy()
-        new_output_dict['saliency'] = [list(m) for m in attentions]
 
-        for i, (t, a) in enumerate(zip(tokens_list, new_output_dict['saliency'])) :
-            # if len(t) != sum([x != 0 for x in a]) :
-            #     breakpoint()
-            new_output_dict['saliency'][i] = [round(float(x), 5) for x in a[:len(t)]]
+        assert len(tokens) == len(attentions)
+        assert max([len(s) for s in tokens]) == attentions.shape[-1]
+
+        new_output_dict['saliency'] = [[round(float(x), 5) for x in list(m)[:len(tok)]] for m, tok in zip(attentions, tokens)]
             
         return new_output_dict
         
