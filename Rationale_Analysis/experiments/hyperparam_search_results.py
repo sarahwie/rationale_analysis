@@ -4,10 +4,7 @@ import json
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--exp-folder", type=str, required=True)
-parser.add_argument("--config-keys", type=str, required=True)
 parser.add_argument('--num-searches', type=int, required=True)
-parser.add_argument("--metrics", type=str, required=True)
-parser.add_argument("--minimize", dest="minimize", action="store_true")
 
 def traverse_nested_dictionary(d, keys) :
     for k in keys :
@@ -15,31 +12,30 @@ def traverse_nested_dictionary(d, keys) :
 
     return d
 
+import pandas as pd
+
 def main(args):
-    configs = []
-    search_metrics = []
+    mu = []
+    lambdav = []
+    rtype = []
+    value = []
+
     for i in range(args.num_searches) :
         exp_name = os.path.join(args.exp_folder, "search_" + str(i))
         try :
-            metrics = json.load(open(os.path.join(exp_name, 'metrics.json')))
-            config = json.load(open(os.path.join(exp_name, 'config.json')))
-            config = {x:traverse_nested_dictionary(config, x.split('.')) for x in args.config_keys.split(',')}
-
-            metrics = {k:metrics[k] for k in args.metrics.split(',')}
-            configs.append(config)
-            search_metrics.append(metrics)
+            for method in ['top_k', 'max_length'] :
+                config = json.load(open(os.path.join(exp_name, 'config.json')))
+                mu.append(config['model']['reg_loss_mu'])
+                lambdav.append(config['model']['reg_loss_lambda'])
+                metrics = json.load(open(os.path.join(exp_name, 'dev_metrics.json')))['validation_metric']
+                value.append(metrics)
+                rtype.append(method)
         except FileNotFoundError:
             continue
 
-    metric_to_select_on = args.metrics.split(',')[0]
-    metrics_selected = list(zip(configs, search_metrics))
-    best_value_set = max(range(len(metrics_selected)), key=lambda x : metrics_selected[x][1][metric_to_select_on] * (-1 if args.minimize else 1))
+    df = pd.DataFrame({'mu' : mu, 'lambda' : lambdav, 'type' : rtype, 'value' : value})
 
-    print(metrics_selected)
-    print(best_value_set)
-    print(metrics_selected[best_value_set])
-
-    json.dump(best_value_set, open(os.path.join(exp_name, 'best_values.json'), 'w'))
+    breakpoint()
 
 if __name__ == "__main__":
     args = parser.parse_args()
