@@ -57,6 +57,10 @@ class PretrainedTransformerIndexerSimple(PretrainedTransformerIndexer):
 
         token_mask = [1]*len(tokens[0])
         wordpiece_mask = [1] * len(wordpiece_ids)
+        wordpiece_to_tokens = [-1] * len(wordpiece_ids)
+        for i, (start, end) in enumerate(zip(doc_starting_offsets, doc_ending_offsets)) :
+            for j in range(start, end) :
+                wordpiece_to_tokens[j] = i
 
         return {
             "wordpiece-ids": wordpiece_ids,
@@ -66,7 +70,8 @@ class PretrainedTransformerIndexerSimple(PretrainedTransformerIndexer):
             "position-ids": postions_ids,
             "wordpiece-mask": wordpiece_mask,
             "mask": token_mask,
-            "attention-mask": list(attention_mask)
+            "attention-mask": list(attention_mask),
+            "wordpiece-to-token" : wordpiece_to_tokens
         }
 
     def add_token_info(self, tokens: List[Token], index_name: str):

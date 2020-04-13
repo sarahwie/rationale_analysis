@@ -9,15 +9,14 @@ from allennlp.data.vocabulary import Vocabulary
 from allennlp.models.model import Model
 from allennlp.nn import InitializerApplicator, RegularizerApplicator, util
 from Rationale_Analysis.models.classifiers.base_model import RationaleBaseModel
-from allennlp.data.dataset import Batch
 
 from allennlp.training.metrics import Average
 
 from Rationale_Analysis.models.kuma import HardKuma
 
 
-@Model.register("encoder_generator_rationale_model_kuma")
-class EncoderGeneratorModel(RationaleBaseModel):
+@Model.register("kuma_gen_enc_classifier")
+class KumaraswamyGenEncClassifier(RationaleBaseModel):
     def __init__(
         self,
         vocab: Vocabulary,
@@ -26,21 +25,21 @@ class EncoderGeneratorModel(RationaleBaseModel):
         samples: int,
         reg_loss_lambda: float,
         desired_length: float,
-        reg_loss_mu: float = 2,
+        reg_loss_mu: float,
         rationale_extractor: Model = None,
         initializer: InitializerApplicator = InitializerApplicator(),
         regularizer: Optional[RegularizerApplicator] = None,
     ):
 
-        super(EncoderGeneratorModel, self).__init__(vocab, initializer, regularizer)
+        super(KumaraswamyGenEncClassifier, self).__init__(vocab, initializer, regularizer)
         self._vocabulary = vocab
         self._num_labels = self._vocabulary.get_vocab_size("labels")
 
         self._generator = Model.from_params(
-            vocab=vocab, regularizer=regularizer, initializer=initializer, params=Params(generator)
+            vocab=vocab, regularizer=regularizer, initializer=initializer, params=Params(generator),
         )
         self._encoder = Model.from_params(
-            vocab=vocab, regularizer=regularizer, initializer=initializer, params=Params(encoder)
+            vocab=vocab, regularizer=regularizer, initializer=initializer, params=Params(encoder),
         )
 
         self._samples = samples
@@ -51,23 +50,21 @@ class EncoderGeneratorModel(RationaleBaseModel):
 
         self._loss_tracks = {
             k: Average()
-            for k in ["_lasso_loss", "_base_loss", "_rat_length", "_fused_lasso_loss", "_average_span_length"]
+            for k in ["_lasso_loss", "_base_loss", "_rat_length", "_fused_lasso_loss", "_censored_lasso_loss", "_generator_loss"]
         }
 
         s_min = torch.Tensor([-0.1])
         s_max = torch.Tensor([1.1])
         self.support = [s_min, s_max]
 
-        # self.lagrange_alpha = 0.5
-        # self.lagrange_lr = 0.01
-        # self.register_buffer('lambda0', torch.full((1,), reg_loss_lambda))
-        # self.register_buffer('sparsity_ma', torch.full((1,), 0.))  # moving average
-
         initializer(self)
 
-    def forward(self, document, query=None, label=None, metadata=None) -> Dict[str, Any]:
-        generator_dict = self._generator(document)
-        mask = util.get_text_field_mask(document)
+    def forward(self, document, query=None, label=None, metadata=None, rationale=None) -> Dict[str, Any]:
+        # pylint: disable=arguments-differ
+
+        generator_dict = self._generator(document, query, label)
+        mask = generator_dict["mask"]
+
         assert "a" in generator_dict
         assert "b" in generator_dict
 
@@ -79,9 +76,11 @@ class EncoderGeneratorModel(RationaleBaseModel):
 
         sampler = HardKuma([a, b], support=[self.support[0].to(a.device), self.support[1].to(b.device)])
         generator_dict['predicted_rationale'] = (sampler.mean() > 0.5).long() * mask
-        
+
         if self.prediction_mode or not self.training:
             if self._rationale_extractor is None :
+                # We constrain rationales to be 0 or 1 strictly. See Pruthi et al 
+                # for pathologies when this is not the case.
                 sample_z = (sampler.mean() > 0.5).long() * mask
             else :
                 prob_z = sampler.mean()
@@ -93,8 +92,13 @@ class EncoderGeneratorModel(RationaleBaseModel):
 
         sample_z = sample_z * mask
 
-        wordpiece_to_token = document['bert']['wordpiece-to-token']
-        wtt0 = torch.where(wordpiece_to_token == -1, torch.tensor([0]).to(wordpiece_to_token.device), wordpiece_to_token)
+        # Because BERT is BERT
+        wordpiece_to_token = generator_dict['wordpiece-to-token']
+        wtt0 = torch.where(
+            wordpiece_to_token == -1, 
+            torch.tensor([0]).to(wordpiece_to_token.device), 
+            wordpiece_to_token
+        )
         wordpiece_sample = util.batched_index_select(sample_z.unsqueeze(-1), wtt0) 
         wordpiece_sample[wordpiece_to_token.unsqueeze(-1) == -1] = 1.0
 
@@ -102,44 +106,41 @@ class EncoderGeneratorModel(RationaleBaseModel):
             output = output * wordpiece_sample
             return output
 
-        hook = self._encoder._embedding_layer.register_forward_hook(scale_embeddings)
-
-        encoder_dict = self._encoder(
-            document=document,
-            query=query,
-            label=label,
-            metadata=metadata,
-        )
+        hook = self._encoder.embedding_layers[0].register_forward_hook(scale_embeddings)
+        
+        encoder_dict = self._encoder(document=document, query=query, label=label, metadata=metadata,)
 
         hook.remove()
 
         loss = 0.0
-        
 
         if label is not None:
             assert "loss" in encoder_dict
 
             base_loss = F.cross_entropy(encoder_dict["logits"], label)  # (B,)
 
-            lasso = ((1 - sampler.pdf(0.)) * mask).sum(1)
+            lasso_loss = ((1 - sampler.pdf(0.)) * mask).sum(1)
             lengths = mask.sum(1)
+
+            lasso_loss = lasso_loss / (lengths + 1e-9)
             
-            sparsity_loss = lasso / (lengths + 1e-9) - self._desired_length
-            sparsity_loss = sparsity_loss.mean()
+            censored_lasso_loss = F.relu(lasso_loss / (lengths + 1e-9) - self._desired_length)
+            censored_lasso_loss = censored_lasso_loss.mean()
 
-            self._loss_tracks["_lasso_loss"](sparsity_loss.item())
+            # diff = (sample_z[:, 1:] - sample_z[:, :-1]).abs()
+            # mask_last = mask[:, :-1]
+            # fused_lasso_loss = diff.sum(-1) / mask_last.sum(-1)
 
-            # # moving average of the constraint
-            # self.sparsity_ma = self.lagrange_alpha * self.sparsity_ma + (1 - self.lagrange_alpha) * sparsity_loss.item()
+            self._loss_tracks["_lasso_loss"](lasso_loss.mean().item())
+            self._loss_tracks["_censored_lasso_loss"](censored_lasso_loss.mean().item())
+            # self._loss_tracks["_fused_lasso_loss"](fused_lasso_loss.mean().item())
+            self._loss_tracks["_base_loss"](base_loss.mean().item())
 
-            # # update lambda
-            # self.lambda0 = self.lambda0 * torch.exp(self.lagrange_lr * self.sparsity_ma.detach())
+            generator_loss = self._reg_loss_lambda * censored_lasso_loss
 
-            self._loss_tracks["_base_loss"](base_loss.item())
-            # self._loss_tracks["_fused_lasso_loss"](self.lambda0.item())
+            self._loss_tracks["_generator_loss"](generator_loss.mean().item())
 
-            # loss += base_loss + min(max(self.lambda0.detach().item(), 0.01), 1.0) * sparsity_loss
-            loss += base_loss + self._reg_loss_lambda * sparsity_loss
+            loss += (base_loss + generator_loss).mean()
 
         output_dict["probs"] = encoder_dict["probs"]
         output_dict["predicted_labels"] = encoder_dict["predicted_labels"]
@@ -167,15 +168,10 @@ class EncoderGeneratorModel(RationaleBaseModel):
         return new_output_dict
 
     def get_metrics(self, reset: bool = False) -> Dict[str, float]:
-        base_metrics = super(EncoderGeneratorModel, self).get_metrics(reset)
+        base_metrics = super(KumaraswamyGenEncClassifier, self).get_metrics(reset)
 
         loss_metrics = {"_total" + k: v._total_value for k, v in self._loss_tracks.items()}
         loss_metrics.update({k: v.get_metric(reset) for k, v in self._loss_tracks.items()})
         loss_metrics.update(base_metrics)
-
-        reg_loss = loss_metrics["_rat_length"]
-        accuracy = loss_metrics["accuracy"]
-
-        loss_metrics["reg_accuracy"] = accuracy - 1000 * max(0, reg_loss - self._desired_length)
 
         return loss_metrics
