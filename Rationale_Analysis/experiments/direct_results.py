@@ -18,8 +18,8 @@ def main_lei(args):
     for d, r, seed in product(datasets, rationale, seeds):
         path = os.path.join(
             args.output_dir,
-            "bert_encoder_generator",
             d,
+            "bert_encoder_generator",
             "direct",
             "RANDOM_SEED=" + str(seed),
             r + "_rationale",
@@ -28,8 +28,7 @@ def main_lei(args):
 
         metrics_file_direct = os.path.join(path, "test_metrics.json")
         if os.path.isfile(metrics_file_direct):
-            metrics = json.load(open(metrics_file_direct))
-            metrics_1 = {k: v for k, v in metrics.items() if k.startswith("_fscore") or k.startswith("fscore")}
+            metrics = json.load(open(metrics_file_direct))['validation_metric']
             values.append(
                 {
                     "dataset": d,
@@ -37,7 +36,7 @@ def main_lei(args):
                     "saliency": "-",
                     "extraction": "-",
                     "seed": seed,
-                    "value": np.mean(list(metrics_1.values())),
+                    "value": metrics
                 }
             )
 

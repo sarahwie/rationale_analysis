@@ -12,9 +12,11 @@ from Rationale_Analysis.models.classifiers.base_model import RationaleBaseModel
 
 from allennlp.training.metrics import Average
 
+from Rationale_Analysis.models.kuma import HardKuma
 
-@Model.register("bernoulli_gen_enc_classifier")
-class BernoulliGenEncClassifier(RationaleBaseModel):
+
+@Model.register("kuma_gen_enc_classifier")
+class KumaraswamyGenEncClassifier(RationaleBaseModel):
     def __init__(
         self,
         vocab: Vocabulary,
@@ -29,7 +31,7 @@ class BernoulliGenEncClassifier(RationaleBaseModel):
         regularizer: Optional[RegularizerApplicator] = None,
     ):
 
-        super(BernoulliGenEncClassifier, self).__init__(vocab, initializer, regularizer)
+        super(KumaraswamyGenEncClassifier, self).__init__(vocab, initializer, regularizer)
         self._vocabulary = vocab
         self._num_labels = self._vocabulary.get_vocab_size("labels")
 
@@ -51,6 +53,10 @@ class BernoulliGenEncClassifier(RationaleBaseModel):
             for k in ["_lasso_loss", "_base_loss", "_rat_length", "_fused_lasso_loss", "_censored_lasso_loss", "_generator_loss"]
         }
 
+        s_min = torch.Tensor([-0.1])
+        s_max = torch.Tensor([1.1])
+        self.support = [s_min, s_max]
+
         initializer(self)
 
     def forward(self, document, query=None, label=None, metadata=None, rationale=None) -> Dict[str, Any]:
@@ -58,59 +64,79 @@ class BernoulliGenEncClassifier(RationaleBaseModel):
 
         generator_dict = self._generator(document, query, label)
         mask = generator_dict["mask"]
-        assert "a" in generator_dict, "b" in generator_dict
 
-        prob_z = generator_dict["probs"]
+        assert "a" in generator_dict
+        assert "b" in generator_dict
 
-        assert len(prob_z.shape) == 2
+        a, b = generator_dict['a'], generator_dict['b']
+        a = a.clamp(1e-6, 100.)  # extreme values could result in NaNs
+        b = b.clamp(1e-6, 100.)  # extreme values could result in NaNs
 
         output_dict = {}
 
-        sampler = D.bernoulli.Bernoulli(probs=prob_z)
+        sampler = HardKuma([a, b], support=[self.support[0].to(a.device), self.support[1].to(b.device)])
+        generator_dict['predicted_rationale'] = (sampler.mean() > 0.5).long() * mask
+
         if self.prediction_mode or not self.training:
-            if self._rationale_extractor is None:
-                sample_z = generator_dict["predicted_rationale"].float()
-            else:
-                sample_z = self._rationale_extractor.extract_rationale(prob_z, document, as_one_hot=True)
-                output_dict["rationale"] = self._rationale_extractor.extract_rationale(
-                    prob_z, document, as_one_hot=False
-                )
+            if self._rationale_extractor is None :
+                # We constrain rationales to be 0 or 1 strictly. See Pruthi et al 
+                # for pathologies when this is not the case.
+                sample_z = (sampler.mean() > 0.5).long() * mask
+            else :
+                prob_z = sampler.mean()
+                sample_z = self._rationale_extractor.extract_rationale(prob_z, metadata, as_one_hot=True)
+                output_dict["rationale"] = self._rationale_extractor.extract_rationale(prob_z, metadata, as_one_hot=False)
                 sample_z = torch.Tensor(sample_z).to(prob_z.device).float()
         else:
             sample_z = sampler.sample()
 
         sample_z = sample_z * mask
-        reduced_document = self.select_tokens(document, sample_z)
+
+        # Because BERT is BERT
+        wordpiece_to_token = generator_dict['wordpiece-to-token']
+        wtt0 = torch.where(
+            wordpiece_to_token == -1, 
+            torch.tensor([0]).to(wordpiece_to_token.device), 
+            wordpiece_to_token
+        )
+        wordpiece_sample = util.batched_index_select(sample_z.unsqueeze(-1), wtt0) 
+        wordpiece_sample[wordpiece_to_token.unsqueeze(-1) == -1] = 1.0
+
+        def scale_embeddings(module, input, output) :
+            output = output * wordpiece_sample
+            return output
+
+        hook = self._encoder.embedding_layers[0].register_forward_hook(scale_embeddings)
         
-        encoder_dict = self._encoder(document=reduced_document, query=query, label=label, metadata=metadata)
+        encoder_dict = self._encoder(document=document, query=query, label=label, metadata=metadata,)
+
+        hook.remove()
 
         loss = 0.0
 
         if label is not None:
             assert "loss" in encoder_dict
-            loss_sample = F.cross_entropy(encoder_dict["logits"], label, reduction="none")  # (B,)
 
-            log_prob_z = sampler.log_prob(sample_z)  # (B, L)
-            log_prob_z_sum = (mask * log_prob_z).sum(-1)  # (B,)
+            base_loss = F.cross_entropy(encoder_dict["logits"], label)  # (B,)
 
-            lasso_loss = util.masked_mean(sample_z, mask, dim=-1)
-            censored_lasso_loss = F.relu(lasso_loss - self._desired_length)
+            lasso_loss = ((1 - sampler.pdf(0.)) * mask).sum(1)
+            lengths = mask.sum(1)
 
-            diff = (sample_z[:, 1:] - sample_z[:, :-1]).abs()
-            mask_last = mask[:, :-1]
-            fused_lasso_loss = diff.sum(-1) / mask_last.sum(-1)
+            lasso_loss = lasso_loss / (lengths + 1e-9)
+            
+            censored_lasso_loss = F.relu(lasso_loss / (lengths + 1e-9) - self._desired_length)
+            censored_lasso_loss = censored_lasso_loss.mean()
+
+            # diff = (sample_z[:, 1:] - sample_z[:, :-1]).abs()
+            # mask_last = mask[:, :-1]
+            # fused_lasso_loss = diff.sum(-1) / mask_last.sum(-1)
 
             self._loss_tracks["_lasso_loss"](lasso_loss.mean().item())
             self._loss_tracks["_censored_lasso_loss"](censored_lasso_loss.mean().item())
-            self._loss_tracks["_fused_lasso_loss"](fused_lasso_loss.mean().item())
-            self._loss_tracks["_base_loss"](loss_sample.mean().item())
+            # self._loss_tracks["_fused_lasso_loss"](fused_lasso_loss.mean().item())
+            self._loss_tracks["_base_loss"](base_loss.mean().item())
 
-            base_loss = loss_sample
-            generator_loss = (
-                loss_sample.detach() 
-                + censored_lasso_loss * self._reg_loss_lambda
-                + fused_lasso_loss * (self._reg_loss_mu * self._reg_loss_lambda)
-            ) * log_prob_z_sum
+            generator_loss = self._reg_loss_lambda * censored_lasso_loss
 
             self._loss_tracks["_generator_loss"](generator_loss.mean().item())
 
@@ -123,7 +149,6 @@ class BernoulliGenEncClassifier(RationaleBaseModel):
         output_dict["gold_labels"] = label
         output_dict["metadata"] = metadata
 
-        output_dict["prob_z"] = generator_dict["prob_z"]
         output_dict["predicted_rationale"] = generator_dict["predicted_rationale"]
 
         self._loss_tracks["_rat_length"](
@@ -143,7 +168,7 @@ class BernoulliGenEncClassifier(RationaleBaseModel):
         return new_output_dict
 
     def get_metrics(self, reset: bool = False) -> Dict[str, float]:
-        base_metrics = super(BernoulliGenEncClassifier, self).get_metrics(reset)
+        base_metrics = super(KumaraswamyGenEncClassifier, self).get_metrics(reset)
 
         loss_metrics = {"_total" + k: v._total_value for k, v in self._loss_tracks.items()}
         loss_metrics.update({k: v.get_metric(reset) for k, v in self._loss_tracks.items()})
